@@ -1,0 +1,197 @@
+{
+	"name": "brief4vscode",
+	"displayName": "brief4vscode",
+	"description": "Adds key bindings and functionality that attempts to emulate many features of the original BRIEF MS-DOS application. BRIEF (Basic Re-configurable Interactive Editing Facility) was a powerful and popular programmer&apos;s text editor in the late 1980s and early 1990s, developed by UnderWare Inc.",
+	"icon": "media/brief128.png",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/ralphkw1/brief4vscode.git"
+	},
+	"publisher": "ms-vscode",
+	"version": "1.0.1",
+	"license": "Apache2",
+	"keywords": [
+		"brief"
+	],
+	"engines": {
+		"vscode": "^1.53.0"
+	},
+	"categories": [
+		"Other",
+		"Keymaps"
+	],
+	"activationEvents": [
+		"*",
+		"onCommand:type"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"menus": {
+			"editor/title": [
+				{
+					"command": "brief4vscode.enable_brief4vscode",
+					"when": "editorTextFocus && !brief4vscode_enabled",
+					"group": "Group4"
+				},
+				{
+					"command": "brief4vscode.disable_brief4vscode",
+					"when": "editorTextFocus && brief4vscode_enabled",
+					"group": "Group4"
+				}
+			]
+		},
+		"commands": [
+			{
+				"command": "brief4vscode.enable_brief4vscode",
+				"title": "Enable Brief Emulation"
+			},
+			{
+				"command": "brief4vscode.disable_brief4vscode",
+				"title": "Disable Brief Emulation"
+			}
+		],
+		"keybindings": [
+			{
+				"key": "alt+d",
+				"command": "editor.action.deleteLines",
+				"when": "editorTextFocus && !editorReadonly && brief4vscode_enabled"
+			},
+			{
+				"key": "alt+k",
+				"command": "deleteAllRight",
+				"when": "editorTextFocus && !editorReadonly && brief4vscode_enabled"
+			},
+			{
+				"key": "ctrl+k",
+				"command": "deleteAllLeft",
+				"when": "editorTextFocus && !editorReadonly && brief4vscode_enabled"
+			},
+			{
+				"command": "brief4vscode.overstrike_toggle",
+				"key": "alt+i",
+				"when": "editorTextFocus && brief4vscode_enabled"
+			},
+			{
+				"key": "alt+u",
+				"command": "undo",
+				"when": "editorTextFocus && !editorReadonly && brief4vscode_enabled"
+			},
+			{
+				"key": "numpad_multiply",
+				"command": "undo",
+				"when": "editorTextFocus && !editorReadonly && brief4vscode_enabled"
+			},
+			{
+				"key": "ctrl+u",
+				"command": "redo",
+				"when": "editorTextFocus && !editorReadonly && brief4vscode_enabled"
+			},
+			{
+				"key": "ctrl+backspace",
+				"command": "deleteWordLeft",
+				"when": "editorTextFocus && !editorReadonly && brief4vscode_enabled"
+			},
+			{
+				"key": "alt+backspace",
+				"command": "deleteWordRight",
+				"when": "editorTextFocus && !editorReadonly && brief4vscode_enabled"
+			},
+			{
+				"key": "alt+h",
+				"command": "editor.action.showHover",
+				"when": "editorTextFocus && brief4vscode_enabled"
+			},
+			{
+				"key": "alt+x",
+				"command": "workbench.action.quit",
+				"when": "editorTextFocus && brief4vscode_enabled"
+			},
+			{
+				"key": "alt+w",
+				"command": "workbench.action.files.save",
+				"when": "editorTextFocus && !editorReadonly && brief4vscode_enabled"
+			},
+			{
+				"key": "ctrl+x",
+				"command": "workbench.action.closeActiveEditor",
+				"when": "editorTextFocus && brief4vscode_enabled"
+			},
+			{
+				"key": "alt+s",
+				"command": "actions.find",
+				"when": "editorTextFocus && brief4vscode_enabled"
+			},
+			{
+				"key": "shift+f5",
+				"command": "editor.action.nextMatchFindAction",
+				"when": "editorFocus && brief4vscode_enabled"
+			},
+			{
+				"key": "alt+f5",
+				"command": "editor.action.previousMatchFindAction",
+				"when": "editorFocus && brief4vscode_enabled"
+			},
+			{
+				"key": "alt+t",
+				"command": "editor.action.startFindReplaceAction",
+				"when": "editorTextFocus && !editorReadonly && brief4vscode_enabled"
+			},
+			{
+				"key": "alt+l",
+				"command": "brief4vscode.line_marking_mode_toggle",
+				"when": "editorTextFocus && brief4vscode_enabled"
+			},
+			{
+				"key": "down",
+				"command": "brief4vscode.down",
+				"when": "editorTextFocus && brief4vscode_enabled && brief4vscode_line_marking_mode"
+			},
+			{
+				"key": "up",
+				"command": "brief4vscode.up",
+				"when": "editorTextFocus && brief4vscode_enabled && brief4vscode_line_marking_mode"
+			},
+			{
+				"key": "numpad_add",
+				"command": "brief4vscode.copy",
+				"when": "editorTextFocus && brief4vscode_enabled"
+			},
+			{
+				"key": "numpad_subtract",
+				"command": "brief4vscode.cut",
+				"when": "editorTextFocus && !editorReadonly && brief4vscode_enabled"
+			},
+			{
+				"key": "insert",
+				"command": "brief4vscode.paste",
+				"when": "editorTextFocus && !editorReadonly && brief4vscode_enabled"
+			},
+			{
+				"key": "shift+insert",
+				"command": "brief4vscode.open_scrap_dialog",
+				"when": "editorTextFocus && !editorReadonly && brief4vscode_enabled"
+			}
+		]
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"pretest": "npm run compile && npm run lint",
+		"lint": "eslint src --ext ts",
+		"test": "node ./out/test/runTest.js"
+	},
+	"devDependencies": {
+		"@types/vscode": "^1.53.0",
+		"@types/glob": "^7.1.3",
+		"@types/mocha": "^8.0.4",
+		"@types/node": "^12.11.7",
+		"eslint": "^7.19.0",
+		"@typescript-eslint/eslint-plugin": "^4.14.1",
+		"@typescript-eslint/parser": "^4.14.1",
+		"glob": "^7.1.6",
+		"mocha": "^8.2.1",
+		"typescript": "^4.1.3",
+		"vscode-test": "^1.5.0"
+	}
+}
