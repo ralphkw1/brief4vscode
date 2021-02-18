@@ -201,8 +201,8 @@ export class Commands
             let selection = editor.selection;
             if( !selection.isEmpty )
             {
-                let position = editor.selection.active;
-                editor.selection = new vscode.Selection( position, position );
+                var postion = editor.selection.end;
+                editor.selection = new vscode.Selection( postion, postion );
             }
         }
     };
@@ -334,12 +334,12 @@ export class Commands
 
     public home = ( args: any[] ): void =>
     {
-        vscode.commands.executeCommand( "cursorHome", args ).then( () => { this.stop_all_marking_modes(); } );
+        vscode.commands.executeCommand( "cursorHome", args );
     };
 
     public end = ( args: any[] ): void =>
     {
-        vscode.commands.executeCommand( "cursorEnd", args ).then( () => { this.stop_all_marking_modes(); } );
+        vscode.commands.executeCommand( "cursorEnd", args );
     };
 
     public delete = ( args: any[] ): void =>
@@ -357,7 +357,7 @@ export class Commands
         return this.is_line_marking_mode;
     };
 
-    private copy_or_cut = ( command: string ): void =>
+    private copy_or_cut_to_history = (): vscode.Position | null =>
     {
         let selection_start: vscode.Position;
         let selection_end: vscode.Position;
@@ -377,34 +377,35 @@ export class Commands
                 this.scrap_manager.copy( text );
                 selection_start = selection.start;
                 selection_end = selection.end;
+                return selection_start;
             }
         }
 
-        vscode.commands.executeCommand( command ).
-            then( () =>
-            {
-                this.stop_all_marking_modes( true );
-
-                if( command === "editor.action.clipboardCutAction" )
-                {
-                    let editor = vscode.window.activeTextEditor;
-                    if( editor && selection_start )
-                    {
-                        let start_position = editor.document.validatePosition( new vscode.Position( selection_start.line, 0 ) );
-                        editor.selection = new vscode.Selection( start_position, start_position );
-                    }
-                }
-            } );
+        return null;
     };
 
     public copy = ( args: any[] ): void =>
     {
-        this.copy_or_cut( "editor.action.clipboardCopyAction" );
+        this.copy_or_cut_to_history();
+        this.stop_all_marking_modes( true );
     };
 
-    public cut = ( args: any[] ): void =>
+    public cut = async ( args: any[] ): Promise<void> =>
     {
-        this.copy_or_cut( "editor.action.clipboardCutAction" );
+        let selection_start = this.copy_or_cut_to_history();
+
+        let editor = vscode.window.activeTextEditor;
+        if( editor )
+        {
+            let selection = editor.selection;
+            editor.edit( builder =>
+                {
+                    builder.delete( selection );
+                } ).then( () =>
+                {
+                    this.stop_all_marking_modes();
+                } );
+        }
     };
 
     public paste = ( args: any[] ): void =>

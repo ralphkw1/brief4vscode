@@ -69,6 +69,7 @@ export class Scrap_manager
     public copy = <T extends string>( item: T ): void =>
     {
         this.scrap_buffer.add_exclusive( item );
+        this.push_to_system_clipboard( item );
     };
 
     public paste = <T extends string>( item: T ) =>
