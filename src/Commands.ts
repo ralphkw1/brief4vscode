@@ -18,9 +18,6 @@ export class Commands
     private line_selection_start: number;
     private line_selection_end: number;
 
-    // private document_last_line_index: number | null = null;
-    // private document_last_character: vscode.Position | null = null;
-
     public constructor( context: vscode.ExtensionContext,
         status_bar: Status_bar,
         scrap_manager: Scrap_manager )
@@ -42,6 +39,12 @@ export class Commands
             vscode.commands.registerCommand( "brief4vscode.overstrike_toggle", this.overstrike_toggle ),
             vscode.commands.registerCommand( "brief4vscode.down", this.down ),
             vscode.commands.registerCommand( "brief4vscode.up", this.up ),
+            vscode.commands.registerCommand( "brief4vscode.page_down", this.page_down ),
+            vscode.commands.registerCommand( "brief4vscode.page_up", this.page_up ),
+            vscode.commands.registerCommand( "brief4vscode.end", this.end ),
+            vscode.commands.registerCommand( "brief4vscode.home", this.home ),
+            vscode.commands.registerCommand( "brief4vscode.delete", this.delete ),
+            vscode.commands.registerCommand( "brief4vscode.backspace", this.backspace ),
             vscode.commands.registerCommand( "brief4vscode.line_marking_mode_toggle", this.line_marking_mode_toggle ),
             vscode.commands.registerCommand( "brief4vscode.copy", this.copy ),
             vscode.commands.registerCommand( "brief4vscode.cut", this.cut ),
@@ -154,9 +157,6 @@ export class Commands
         this.is_line_marking_mode = false;
         this.line_selection_start = this.line_selection_end = -1;
 
-        // this.document_last_line_index = null;
-        // this.document_last_character = null;
-
         this.status_bar?.clear_all();
 
         if( remove_selection )
@@ -189,16 +189,6 @@ export class Commands
         }
         else
         {
-            // let editor = vscode.window.activeTextEditor;
-            // if( editor )
-            // {
-            //     this.document_last_line_index = editor.document.lineCount - 1;
-            //     let document_last_line = editor.document.lineAt( this.document_last_line_index );
-            //     let document_last_line_length = document_last_line.text.length;
-            //     this.document_last_character =
-            //         new vscode.Position( this.document_last_line_index, document_last_line_length );
-            // }
-
             this.select_line();
         }
     };
@@ -256,28 +246,110 @@ export class Commands
         return null;
     };
 
+    public up = ( args: any[] ): void =>
+    {
+        let editor = vscode.window.activeTextEditor;
+        if( editor )
+        {
+            if( this.is_line_marking_mode )
+            {
+                let end = this.line_selection_end - 1;
+                if( end < 0 ) { end = 0; };
+                this.select_lines( this.line_selection_start, end );
+
+                let previous_end_line_position =
+                    editor.document.validatePosition( new vscode.Position( this.line_selection_end - 1, 0 ) );
+                editor.revealRange( new vscode.Range( previous_end_line_position, previous_end_line_position ) );
+
+                return;
+            }
+        }
+
+        vscode.commands.executeCommand( "cursorUp", args );
+    };
+
     public down = ( args: any[] ): void =>
     {
-        if( this.is_line_marking_mode )
+        let editor = vscode.window.activeTextEditor;
+        if( editor )
         {
-            this.select_lines( this.line_selection_start, this.line_selection_end + 1 );
-            return;
+            if( this.is_line_marking_mode )
+            {
+                this.select_lines( this.line_selection_start, this.line_selection_end + 1 );
+
+                let next_end_line_position =
+                    editor.document.validatePosition( new vscode.Position( this.line_selection_end + 1, 0 ) );
+                editor.revealRange( new vscode.Range( next_end_line_position, next_end_line_position ) );
+
+                return;
+            }
         }
 
         vscode.commands.executeCommand( "cursorDown", args );
     };
 
-    public up = ( args: any[] ): void =>
+    public page_up = ( args: any[] ): void =>
     {
-        if( this.is_line_marking_mode )
+        let editor = vscode.window.activeTextEditor;
+        if( editor )
         {
-            let end = this.line_selection_end - 1;
-            if( end < 0 ) { end = 0; };
-            this.select_lines( this.line_selection_start, end );
-            return;
+            if( this.is_line_marking_mode )
+            {
+                let lines_per_page = editor.visibleRanges[0].end.line - editor.visibleRanges[0].start.line;
+                let end = this.line_selection_end - lines_per_page;
+                if( end < 0 ) { end = 0; };
+                this.select_lines( this.line_selection_start, end );
+
+                let previous_end_line_position =
+                    editor.document.validatePosition( new vscode.Position( this.line_selection_end - 1, 0 ) );
+                editor.revealRange( new vscode.Range( previous_end_line_position, previous_end_line_position ) );
+
+                return;
+            }
         }
 
-        vscode.commands.executeCommand( "cursorUp", args );
+        vscode.commands.executeCommand( "cursorPageUp", args );
+    };
+
+    public page_down = ( args: any[] ): void =>
+    {
+        let editor = vscode.window.activeTextEditor;
+        if( editor )
+        {
+            if( this.is_line_marking_mode )
+            {
+                let lines_per_page = editor.visibleRanges[0].end.line - editor.visibleRanges[0].start.line;
+                this.select_lines( this.line_selection_start, this.line_selection_end + lines_per_page );
+
+                let next_end_line_position =
+                    editor.document.validatePosition( new vscode.Position( this.line_selection_end + 1, 0 ) );
+                editor.revealRange( new vscode.Range( next_end_line_position, next_end_line_position ) );
+
+                return;
+            }
+        }
+
+        vscode.commands.executeCommand( "cursorPageDown", args );
+    };
+
+    public home = ( args: any[] ): void =>
+    {
+        vscode.commands.executeCommand( "cursorHome", args ).then( () => { this.stop_all_marking_modes(); } );
+    };
+
+    public end = ( args: any[] ): void =>
+    {
+        vscode.commands.executeCommand( "cursorEnd", args ).then( () => { this.stop_all_marking_modes(); } );
+    };
+
+    public delete = ( args: any[] ): void =>
+    {
+        vscode.commands.executeCommand( "deleteRight", args ).then( () => { this.stop_all_marking_modes(); } );
+    };
+
+    public backspace = ( args: any[] ): void =>
+    {
+        vscode.commands.executeCommand( "deleteLeft", args ).then( () => { this.stop_all_marking_modes(); } );
     };
 
     public is_any_marking_mode = (): boolean =>
@@ -285,8 +357,11 @@ export class Commands
         return this.is_line_marking_mode;
     };
 
-    private copy_or_cut = ( command: string, args: any[] ): void =>
+    private copy_or_cut = ( command: string ): void =>
     {
+        let selection_start: vscode.Position;
+        let selection_end: vscode.Position;
+
         let editor = vscode.window.activeTextEditor;
         if( editor )
         {
@@ -300,24 +375,36 @@ export class Commands
             {
                 let text = editor.document.getText( new vscode.Range( selection.start, selection.end ) );
                 this.scrap_manager.copy( text );
+                selection_start = selection.start;
+                selection_end = selection.end;
             }
         }
 
-        vscode.commands.executeCommand( command, args ).
+        vscode.commands.executeCommand( command ).
             then( () =>
             {
                 this.stop_all_marking_modes( true );
+
+                if( command === "editor.action.clipboardCutAction" )
+                {
+                    let editor = vscode.window.activeTextEditor;
+                    if( editor && selection_start )
+                    {
+                        let start_position = editor.document.validatePosition( new vscode.Position( selection_start.line, 0 ) );
+                        editor.selection = new vscode.Selection( start_position, start_position );
+                    }
+                }
             } );
     };
 
     public copy = ( args: any[] ): void =>
     {
-        this.copy_or_cut( "editor.action.clipboardCopyAction", args );
+        this.copy_or_cut( "editor.action.clipboardCopyAction" );
     };
 
     public cut = ( args: any[] ): void =>
     {
-        this.copy_or_cut( "editor.action.clipboardCutAction", args );
+        this.copy_or_cut( "editor.action.clipboardCutAction" );
     };
 
     public paste = ( args: any[] ): void =>

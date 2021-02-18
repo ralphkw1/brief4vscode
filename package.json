@@ -7,8 +7,8 @@
 		"type": "git",
 		"url": "https://github.com/ralphkw1/brief4vscode.git"
 	},
-	"publisher": "ms-vscode",
-	"version": "1.0.1",
+	"publisher": "rkdawenterprises",
+	"version": "1.0.2",
 	"license": "Apache2",
 	"keywords": [
 		"brief"
@@ -149,6 +149,36 @@
 			{
 				"key": "up",
 				"command": "brief4vscode.up",
+				"when": "editorTextFocus && brief4vscode_enabled && brief4vscode_line_marking_mode"
+			},
+			{
+				"key": "pagedown",
+				"command": "brief4vscode.page_down",
+				"when": "editorTextFocus && brief4vscode_enabled && brief4vscode_line_marking_mode"
+			},
+			{
+				"key": "pageup",
+				"command": "brief4vscode.page_up",
+				"when": "editorTextFocus && brief4vscode_enabled && brief4vscode_line_marking_mode"
+			},
+			{
+				"key": "home",
+				"command": "brief4vscode.home",
+				"when": "editorTextFocus && brief4vscode_enabled && brief4vscode_line_marking_mode"
+			},
+			{
+				"key": "end",
+				"command": "brief4vscode.end",
+				"when": "editorTextFocus && brief4vscode_enabled && brief4vscode_line_marking_mode"
+			},
+			{
+				"key": "delete",
+				"command": "brief4vscode.delete",
+				"when": "editorTextFocus && brief4vscode_enabled && brief4vscode_line_marking_mode"
+			},
+			{
+				"key": "backspace",
+				"command": "brief4vscode.backspace",
 				"when": "editorTextFocus && brief4vscode_enabled && brief4vscode_line_marking_mode"
 			},
 			{

@@ -1,2 +1,124 @@
-
-Please see "about.html" in this package...
+<div style="background-color:#F5FFFF">
+<center><h2 style="color:#0000AA">Brief Text Editor Emulation for Visual Studio Code</h2></center>
+<p>This plug-in adds key bindings and functionality that attempts to emulate many features of the original BRIEF MS-DOS application. BRIEF (Basic Re-configurable Interactive Editing Facility) was a popular programmer's text editor in the late 1980s and early 1990s. Developed by UnderWare Inc, it was quite powerful and feature rich for its time. See the Wikipedia page &quot;<a href="https://en.wikipedia.org/wiki/Brief_(text_editor)" target="_blank">Brief (text editor)</a>&quot;.</p>
+<p>I started using Brief in the early 1990s when I was at Compaq Computer Corporation working on printers. I thought then that it was way beyond anything I had used to date.</p>
+<p>I created this project as an exercise for me to learn Visual Studio Code plug-in development; Just having fun. I don't think that there is a high demand for Brief emulation in the Visual Studio Code IDE. Don't get me wrong, there was a lot of effort that went into this plug-in. I have always really liked the Brief key assignments and feature set and I try and set it up in any editor I use. So if you are/were also into Brief, I hope you enjoy using this.</p>
+<p>One of the goals of this project was to have minimal effect on the underlying Visual Studio Code &quot;StyledText&quot; editor. So this is by no means a perfect example of the Brief editor  and it's a little quirky at times, mainly because it is limited by the API and architecture of the existing editor. I try to note any deviations in the command descriptions, at least, deviations from the limited documentation and knowledge I have. I have also added some commands as documented below. You can, of course, disable any key bindings and/or set them back to default in  the &quot;preferences-&gt;general-&gt;keys&quot; menu.</p>
+<p>BTW, I don't have a working example of Brief, just the old documentation. Feel free to let me know if I have implemented something improperly. Also, I did not try to emulate all of Brief's functionality. This is most certainly a subset.</p>
+<h3 style="color:#0000AA">Installation</h3>
+<p>After you install the plug-in, it should just start working</p>
+<h3 style="color:#0000AA">Commands</h3>
+<p>The following are the key bindings and commands implemented by the plugin. Brief functionality that is currently the default behavior, or close enough, is not re-implemented by the plug-in and not documented here. Outside of the active marking modes, mouse functionality is not intentionally modified.<br/><br/>If you are looking for the full Brief command set, try the following link. &quot;<a href="https://christopoulos.users.sourceforge.net/cbrief/brief.php" target="_blank">About BRIEF Text Editor</a>&quot;. Otherwise, search for it with your favorite search engine.</p>
+<p>NOTE! The plug-in does not currently support line/code folding, at least not very well. So best to unfold the area of the file you are working on if you want the commands to work as expected.</p>
+</div>
+<table style="background-color:#F5FFFF">
+    <caption style="color:#0000AA; background-color:#F5FFFF">Help and Undo/Redo</caption>
+    <tr><th width="15%">Key Binding</th><th width="20%">Command</th><th width="65%">Description</th></tr>
+    <tr><td>Alt + H</td><td>Help</td><td>Show the contextual help window.</td></tr>
+    <tr><td>Alt + U, Keypad Multiply</td><td>Undo</td><td>Undo the last command.</td></tr>
+    <tr><td>Ctrl + U</td><td>Redo</td><td>Redoes the commands that have been previously undone.</td></tr>
+</table>
+<table style="background-color:#F5FFFF">
+    <caption style="color:#0000AA; background-color:#F5FFFF">Saving and Exiting</caption>
+    <tr><th width="15%">Key Binding</th><th width="20%">Command</th><th width="65%">Description</th></tr>
+    <tr><td>Alt + O</td><td>Change output file name <sup><a href="#fn1" id="ref1">1</a></sup></td><td>Change the file name of the current editor. Uses the Project Explorer &quot;rename&quot; for editors that are in a project. Otherwise uses the editors &quot;save as&quot;.</td></tr>
+    <tr><td>Alt + X</td><td>Exit</td><td>Exits the IDE. Should prompt for unsaved content.</td></tr>
+    <tr><td>Alt + W</td><td>Write</td><td>Writes the current editor's file to storage.</td></tr>
+    <tr><td>Ctrl + W</td><td>Close window</td><td>Closes the current editor's window.</td></tr>
+    <tr><td>Shift + Ctrl + X<sup><a href="#fn16" id="ref1">16</a></sup></td><td>Write all and exit</td><td>Writes all unsaved content to storage and  exits the IDE.</td></tr>
+</table>
+<table style="background-color:#F5FFFF">
+    <caption style="color:#0000AA; background-color:#F5FFFF">Cursor Movement</caption>
+    <tr><th width="15%">Key Binding</th><th width="20%">Command</th><th width="65%">Description</th></tr>
+    <tr><td>Home</td><td>Beginning of line or window or file <sup><a href="#fn2" id="ref2">2</a></sup></td><td>Moves the cursor to the beginning of the line or the window or the file depending on whether it is already there.</td></tr>
+    <tr><td>End</td><td>End of line or window or file <sup><a href="#fn3" id="ref3">3</a></sup></td><td>Moves the cursor to the end of the line or the window or the file depending on whether it is already there.</td></tr>
+    <tr><td>Ctrl + Home</td><td>Top of window</td><td>Moves the cursor to the top fully visible line of the window.</td></tr>
+    <tr><td>Ctrl + End</td><td>End of window</td><td>Moves the cursor  to the bottom fully visible line of the window.</td></tr>
+    <tr><td>Ctrl + PgUp</td><td>Top of buffer/file</td><td>Moves the cursor to the first character position of the editor. Hitting the &lt;Home&gt; key up to 3 times will also do this.</td></tr>
+    <tr><td>Ctrl + PgDn</td><td>End of buffer/file</td><td>Moves the cursor to the last character position of the editor. Hitting the &lt;End&gt; key up to 3 times will also do this.</td></tr>
+    <tr><td>Shift + Home, Alt + Home</td><td>Left side of window</td><td>Moves the cursor to the left side of the window.</td></tr>
+    <tr><td>Shift + End, Alt + End</td><td>Right side of window</td><td>Moves the cursor to the right side of the window.<sup><a href="#fn13" id="ref13">13</a></sup></td></tr>
+    <tr><td>Ctrl + &rarr;</td><td>Next word</td><td>Moves the cursor to the last character of the next word.<sup><a href="#fn14" id="ref14">14</a></sup></td></tr>
+    <tr><td>Ctrl + &larr;</td><td>Previous word</td><td>Moves the cursor to the first character of the previous word.</td></tr>
+    <tr><td>Alt + G</td><td>Go to line</td><td>Opens the "Goto Dialog" and moves the cursor to the requested line number.</td></tr>
+    <tr><td>Alt + V</td><td>Toggle virtual caret mode</td><td>Places cursor at the current mouse location if it is beyond the end of a line.<sup><a href="#fn4" id="ref4">4</a></sup></td></tr>
+</table>
+<table style="background-color:#F5FFFF">
+    <caption style="color:#0000AA; background-color:#F5FFFF">Windows</caption>
+    <tr><th width="15%">Key Binding</th><th width="20%">Command</th><th width="65%">Description</th></tr>
+    <tr><td>Ctrl + T</td><td>Line to top of window</td><td>Moves the line, that the cursor is currently on, to the top of the current window.</td></tr>
+    <tr><td>Ctrl + C</td><td>Center line in window</td><td>Moves the current line to the center of the current window.</td></tr>
+    <tr><td>Ctrl + B</td><td>Line to bottom of window</td><td>Moves the current line to the bottom of the current window.</td></tr>
+</table>
+<table style="background-color:#F5FFFF">
+    <caption style="color:#0000AA; background-color:#F5FFFF">Editing Text</caption>
+    <tr><th width="15%">Key Binding</th><th width="20%">Command</th><th width="65%">Description</th></tr>
+    <tr><td>Alt + D</td><td>Delete line</td><td>Deletes the current line.</td></tr>
+    <tr><td>Alt + Backspace</td><td>Delete next word</td><td>Deletes from the current cursor position to the end of the current word.<sup><a href="#fn14" id="ref14">14</a></sup></td></tr>
+    <tr><td>Ctrl + Backspace</td><td>Delete previous word</td><td>Deletes from the current cursor position the be beginning of the current word.<sup><a href="#fn14" id="ref14">14</a></sup></td></tr>
+    <tr><td>Ctrl + K</td><td>Delete to beginning of line</td><td>Deletes from the current cursor position to the beginning of the line.</td></tr>
+    <tr><td>Alt + K</td><td>Delete to end of line</td><td>Deletes from the current cursor position to the end of the line.</td></tr>
+    <tr><td>Alt + I</td><td>Insert mode toggle</td><td>Toggles between the insert and overstrike modes.</td></tr>
+    <tr><td>Ctrl + Enter</td><td>Open line</td><td>Insert a blank line after the current line.</td></tr>
+</table>
+<table style="background-color:#F5FFFF">
+    <caption style="color:#0000AA; background-color:#F5FFFF">Blocks and Marks</caption>
+    <tr><th width="15%">Key Binding</th><th width="20%">Command</th><th width="65%">Description</th></tr>
+    <tr><td>Alt + M</td><td>Mark toggle</td><td>Toggle normal marking mode. Use cursor or single click mouse to move cursor and expand selection.</td></tr>
+    <tr><td>Alt + L</td><td>Line Mark toggle</td><td>Toggle line marking mode. Use cursor or single click mouse to move cursor and expand selection.</td></tr>
+    <tr><td>Alt + C</td><td>Column Mark toggle</td><td>Toggle column marking mode. Use cursor or single click mouse to move cursor and expand selection. This is the only mode that can start and/or expand into virtual space.</td></tr>
+    <tr><td>Alt + <i>[1-10]</i></td><td>Drop bookmark<sup><a href="#fn5" id="ref5">5</a></sup></td><td>Inserts a numbered (1-10) bookmark into the editor and the current cursor posiotion.</td></tr>
+    <tr><td>Alt + J</td><td>Jump to bookmark<sup><a href="#fn6" id="ref6">6</a></sup></td><td>Opens the &quot;Jump to Bookmark&quot; dialog and places cursor on requested line.</td></tr>
+    <tr><td>Alt + B<sup><a href="#fn12" id="ref12">12</a></sup></td><td>Open bookmarks menu dialog</td><td>Selects the bookmark you want to jump to, or delete them.</td></tr>
+</table>
+<table style="background-color:#F5FFFF">
+    <caption style="color:#0000AA; background-color:#F5FFFF">Scrap<sup><a href="#fn7" id="ref7">7</a></sup></caption>
+    <tr><th width="15%">Key Binding</th><th width="20%">Command</th><th width="65%">Description</th></tr>
+    <tr><td>Keypad Plus</td><td>Copy to scrap</td><td>Copies the marked selection to the scrap buffer (clipboard).</td></tr>
+    <tr><td>Keypad Minus</td><td>Cut to scrap</td><td>Cuts the marked selection to the scrap buffer.</td></tr>
+    <tr><td>Ins</td><td>Paste from scrap</td><td>Pastes the latest scrap item into the current editor.</td></tr>
+    <tr><td>Shift + Ins</td><td>Paste from history</td><td>Opens the &quot;Paste from clipboard History Dialog&quot; and pastes the selected scrap item into the current editor. <a href="#fn15" id="ref15">15</a></td></tr>
+    <tr><td>Alt + Ins</td><td>Swap selection and scrap<sup><a href="#fn10" id="ref10">10</a></sup></td><td>Exchanges the current selection with the latest scrap item, i.e. cuts the current selection, and in it's place, pastes the current scrap.</td></tr>
+</table>
+<table style="background-color:#F5FFFF">
+    <caption style="color:#0000AA; background-color:#F5FFFF">Search and Translate<sup><a href="#fn8" id="ref8">8</a></sup></caption>
+    <tr><th width="15%">Key Binding</th><th width="20%">Command</th><th width="65%">Description</th></tr>
+    <tr><td>Alt + S</td><td>Search forward</td><td>Opens <i>Find/Replace</i> dialog which facilitates both search/replace forward and backward.</td></tr>
+    <tr><td>Alt + T</td><td>Translate forward</td><td>Also opens <i>Find/Replace</i> dialog.</td></tr>
+    <tr><td>Shift + F5</td><td>Search again<sup><a href="#fn9" id="ref9">9</a></sup></td><td>Searches forwards using previous search parameters.</td></tr>
+    <tr><td>Alt + F5</td><td>Search backward<sup><a href="#fn9" id="ref9">9</a></sup></td><td>Searches backwards using previous search parameters.</td></tr>
+    <tr><td>Shift + F6</td><td>Translate again<sup><a href="#fn9" id="ref9">9</a></sup></td><td>Translates (replaces) forwards using previous search parameters.</td></tr>
+    <tr><td>Alt + F6</td><td>Translate backward<sup><a href="#fn9" id="ref9">9</a></sup></td><td>Translates (replaces) backwards using previous search parameters.</td></tr>
+</table>
+<table style="background-color:#F5FFFF">
+    <caption style="color:#0000AA; background-color:#F5FFFF">Special Commands</caption>
+    <tr><th width="15%">Key Binding</th><th width="20%">Command</th><th width="65%">Description</th></tr>
+    <tr><td>Ctrl + R</td><td>Repeat</td><td>Opens the &quot;Repeat Dialog&quot;, then repeats the requested command, or inserts the requested char/string into the editor, the requested number of times.<sup><a href="#fn11" id="ref11">11</a>.</td></tr>
+</table>
+<div style="margin-left: 2%; background-color:#F5FFFF">
+<p><sup id="fn1">1) Uses Project Explorer &quot;rename&quot; dialog for the currently active editor. This commits the change to file storage. <a href="#ref1" title="Jump back to footnote 1.">&#x2196;</a></sup></p>
+<p><sup id="fn2">2) Pressing &lt;Home&gt; will move the cursor/caret to the beginning of the current line if it is not already there. If the cursor/caret is already at the beginning of the line, pressing &lt;Home&gt; will move the cursor/caret to the beginning of the window. If the cursor/caret is already at the beginning of the window, pressing &lt;Home&gt; will move the cursor/caret to the beginning of the buffer/file. <a href="#ref2" title="Jump back to footnote 2.">&#x2196;</a></sup></p>
+<p><sup id="fn3">3) Pressing &lt;End&gt; will move the cursor/caret to the end of the current line if it is not already there. If the cursor/caret is already at the end of the line, pressing &lt;End&gt; will move the cursor/caret to the end of the window. If the cursor/caret is already at the end of the window, pressing &lt;End&gt; will move the cursor/caret to the end of the buffer/file. <a href="#ref3" title="Jump back to footnote 3.">&#x2196;</a></sup></p>
+<p><sup id="fn4">4) New command. This mode facilitates column selection or pasting that is beyond the end of a line (virtual character space). Place the cursor beyond the end of an existing line by positioning the mouse at the desired location and depressing &lt;Alt + V&gt;. You can reposition with mouse clicks. Switch to column mode with &lt;Alt + C&gt; and move cursor to change selection. Can also paste into the virtual space.  Any keystroke before entering column mode will exit from virtual caret mode.<a href="#ref4" title="Jump back to footnote 4.">&#x2196;</a></sup></p>
+<p><sup id="fn5">5) Bookmark 10 is dropped using the 0 key. <a href="#ref5" title="Jump back to footnote 5.">&#x2196;</a></sup></p>
+<p><sup id="fn6">6) According to the documentation, pressing the &lt;Tab&gt; key in the Jump Bookmark dialog will bring up a menu of bookmarks. This is difficult to do in normal dialogs since &lt;Tab&gt; moves focus. So &lt;Alt + B&gt; will bring up the bookmarks dialog/menu. <a href="#ref6" title="Jump back to footnote 6.">&#x2196;</a></sup></p>
+<p><sup id="fn7">7) AKA the clipboard. <a href="#ref7" title="Jump back to footnote 7.">&#x2196;</a></sup></p>
+<p><sup id="fn8">8) Utilizes the standard <i>Find/Replace</i> dialog which does not directly map to Brief commands. This mostly accomodates the Brief command set without recreating the whole search and replace functionality.<a href="#ref8" title="Jump back to footnote 8.">&#x2196;</a></sup></p>
+<p><sup id="fn9">9) To set the search and translate parameters, first open the <i>Find/Replace</i> dialog, fill in the fields, and then either click an action or just close the dialog. The parameters will be saved.<a href="#ref9" title="Jump back to footnote 9.">&#x2196;</a></sup></p>
+<p><sup id="fn10">10) New command. Comes in handy when you want to extract some existing code from a complex statement and make it a new variable. First create the new variable then copy it. Then select the code statement and swap &lt;Alt+Ins&gt;. Then paste the code after the new variable. <a href="#ref10" title="Jump back to footnote 10.">&#x2196;</a></sup></p>
+<p><sup id="fn11">11) Not all commands are supported or work well. Actually accepts any &quot;non-printable&quot; key sequence, so not sure what works actually.<a href="#ref11" title="Jump back to footnote 11.">&#x2196;</a></sup></p>
+<p><sup id="fn12">12) Key binding taken from <i>Buffer List</i> command, which is not supported.<a href="#ref12" title="Jump back to footnote 12.">&#x2196;</a></sup></p>
+<p><sup id="fn13">13) Moves to far right side of window regardless of whether or not there is text there. May activate "Virtual Caret Mode" if in virtual space, i.e. no text.<a href="#ref13" title="Jump back to footnote 13.">&#x2196;</a></sup></p>
+<p><sup id="fn14">14) This is a deviation from documented functionality. I used the Visual Studio Code function instead of reworking it. <a href="#ref14" title="Jump back to footnote 14.">&#x2196;</a></sup></p>
+<p><sup id="fn15">15) This is a new command. I've always wanted to have a multi-item clipboard. <a href="#ref15" title="Jump back to footnote 15.">&#x2196;</a></sup></p>
+<p><sup id="fn16">16) This should be just &lt;CTL+X&gt;, but Visual Studio Code complains about trying to bind that key-sequence so I modified it a little. <a href="#ref16" title="Jump back to footnote 16.">&#x2196;</a></sup></p>
+</div>
+<div style="background-color:#F5FFFF">
+<h3 style="color:#0000AA">Contact</h3>
+<p>You can email me at <a href="mailto:rkdawenterprises@gmail.com?subject=Brief Editor Emulation for Visual Studio Code">rkdawenterprises@gmail.com</a>. I don't look at this very often so it may take a while to hear back.</p>
+<h3 style="color:#0000AA">License</h3>
+<p>Copyright 2021 RKDAW Enterprises and Ralph Williamson</p>
+<p>Licensed under the Apache License, Version 2.0 (the "License"); You may not use this file except in compliance with the License.<br>You may obtain a copy of the License at</p>
+<p><a href="https://www.apache.org/licenses/LICENSE-2.0.txt">https://www.apache.org/licenses/LICENSE-2.0.txt</a></p>
+<p>Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.</p>
+</div>
