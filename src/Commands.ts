@@ -212,6 +212,10 @@ export class Commands
         let editor = vscode.window.activeTextEditor;
         if( editor )
         {
+            if( start < 0 ) { start = 0; }
+            if( end >= editor.document.lineCount ) { end = editor.document.lineCount - 1; }
+            if( end < 0 ) { end = 0; }
+
             if( end >= start )
             {
                 let start_position = editor.document.validatePosition( new vscode.Position( start, 0 ) );
@@ -219,7 +223,9 @@ export class Commands
                 let end_position = editor.document.validatePosition( new vscode.Position( end, editor.document.lineAt( end ).text.length ) );
                 this.line_selection_end = end_position.line;
                 let next_line_position = editor.document.validatePosition( new vscode.Position( this.line_selection_end + 1, 0 ) );
-                return editor.selection = new vscode.Selection( start_position, next_line_position );
+                let selection = new vscode.Selection( start_position, next_line_position );
+                editor.selection = selection;
+                return selection;
             }
             else
             {
@@ -227,7 +233,9 @@ export class Commands
                 this.line_selection_start = start_position.line;
                 let end_position = editor.document.validatePosition( new vscode.Position( end, 0 ) );
                 this.line_selection_end = end_position.line;
-                return editor.selection = new vscode.Selection( start_position, end_position );
+                let selection = new vscode.Selection( start_position, end_position );
+                editor.selection = selection;
+                return selection;
             }
         }
 
@@ -254,12 +262,11 @@ export class Commands
             if( this.is_line_marking_mode )
             {
                 let end = this.line_selection_end - 1;
-                if( end < 0 ) { end = 0; };
                 this.select_lines( this.line_selection_start, end );
-
-                let previous_end_line_position =
-                    editor.document.validatePosition( new vscode.Position( this.line_selection_end - 1, 0 ) );
-                editor.revealRange( new vscode.Range( previous_end_line_position, previous_end_line_position ) );
+                end -= 2;
+                let reveal_line = ( end > 0 ) ? end : 0;
+                let reveal_position = editor.document.validatePosition( new vscode.Position( reveal_line, 0 ) );
+                editor.revealRange( new vscode.Range( reveal_position, reveal_position ) );
 
                 return;
             }
@@ -276,7 +283,6 @@ export class Commands
             if( this.is_line_marking_mode )
             {
                 this.select_lines( this.line_selection_start, this.line_selection_end + 1 );
-
                 let next_end_line_position =
                     editor.document.validatePosition( new vscode.Position( this.line_selection_end + 1, 0 ) );
                 editor.revealRange( new vscode.Range( next_end_line_position, next_end_line_position ) );
@@ -295,14 +301,14 @@ export class Commands
         {
             if( this.is_line_marking_mode )
             {
-                let lines_per_page = editor.visibleRanges[0].end.line - editor.visibleRanges[0].start.line;
-                let end = this.line_selection_end - lines_per_page;
-                if( end < 0 ) { end = 0; };
-                this.select_lines( this.line_selection_start, end );
+                let lines_in_view = editor.visibleRanges[0].end.line - editor.visibleRanges[0].start.line;
 
-                let previous_end_line_position =
-                    editor.document.validatePosition( new vscode.Position( this.line_selection_end - 1, 0 ) );
-                editor.revealRange( new vscode.Range( previous_end_line_position, previous_end_line_position ) );
+                let end = this.line_selection_end - lines_in_view;
+                this.select_lines( this.line_selection_start, end );
+                end -= 2;
+                let reveal_line = ( end > 0 ) ? end : 0;
+                let reveal_position = editor.document.validatePosition( new vscode.Position( reveal_line, 0 ) );
+                editor.revealRange( new vscode.Range( reveal_position, reveal_position ) );
 
                 return;
             }
@@ -318,9 +324,9 @@ export class Commands
         {
             if( this.is_line_marking_mode )
             {
-                let lines_per_page = editor.visibleRanges[0].end.line - editor.visibleRanges[0].start.line;
-                this.select_lines( this.line_selection_start, this.line_selection_end + lines_per_page );
+                let lines_in_view = editor.visibleRanges[0].end.line - editor.visibleRanges[0].start.line;
 
+                this.select_lines( this.line_selection_start, this.line_selection_end + lines_in_view );
                 let next_end_line_position =
                     editor.document.validatePosition( new vscode.Position( this.line_selection_end + 1, 0 ) );
                 editor.revealRange( new vscode.Range( next_end_line_position, next_end_line_position ) );
