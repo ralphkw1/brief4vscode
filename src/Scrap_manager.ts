@@ -7,13 +7,15 @@ export class Scrap_manager
 
     private current: vscode.QuickInput | null = null;
 
-    public constructor()
+    private storage: vscode.Memento;
+
+    public constructor( storage: vscode.Memento )
     {
-        this.scrap_buffer = new Scrap_buffer();
+        this.storage = storage;
+
+        this.scrap_buffer = this.get_stored_scrap();
 
         this.current = null;
-
-        this.get_stored_scrap();
     }
 
     public destroy = (): void =>
@@ -30,14 +32,21 @@ export class Scrap_manager
         return this.scrap_buffer.length();
     };
 
-    private get_stored_scrap = (): void =>
+    private get_stored_scrap = (): Scrap_buffer =>
     {
-        // TODO: serialize stored scrap buffer to/from persistent storage.
+        let scrap_buffer = this.storage.get( "scrap_buffer", null );
+        if( scrap_buffer )
+        {
+            return Scrap_buffer.deserialize( scrap_buffer );
+        }
+
+        return new Scrap_buffer();
     };
 
     private put_stored_scrap = (): void =>
     {
-        // TODO: serialize stored scrap buffer to/from persistent storage.
+        let object_as_string = Scrap_buffer.serialize( this.scrap_buffer );
+        this.storage.update( "scrap_buffer", object_as_string );
     };
 
     public add_from_system_clipboard = ( move_to_front?: boolean ): void =>
@@ -236,6 +245,16 @@ class Scrap_buffer
 
     public destroy = (): void =>
     {
+    };
+
+    public static serialize = ( scrap_buffer: Scrap_buffer ): string =>
+    {
+        return Buffer.from( JSON.stringify( scrap_buffer ), "utf8" ).toString( "base64" );
+    };
+
+    public static deserialize = ( items: string ): Scrap_buffer =>
+    {
+        return JSON.parse( Buffer.from( items, "base64" ).toString( "utf8" ) );
     };
 
     public get_quick_pick_items = (): vscode.QuickPickItem[] | null =>

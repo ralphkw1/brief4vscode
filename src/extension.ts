@@ -19,7 +19,9 @@ export function activate( context: vscode.ExtensionContext )
 	vscode.commands.executeCommand( "setContext", "brief4vscode_enabled", true );
 
 	status_bar = new Status_bar();
-	scrap_manager = new Scrap_manager();
+
+	scrap_manager = new Scrap_manager( context.globalState );
+
 	commands = new Commands( context,
 		status_bar,
 		scrap_manager );

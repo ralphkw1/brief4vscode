@@ -1,14 +1,14 @@
 {
 	"name": "brief4vscode",
 	"displayName": "brief4vscode",
-	"description": "Adds key bindings and functionality that attempts to emulate many features of the original BRIEF MS-DOS application. BRIEF (Basic Re-configurable Interactive Editing Facility) was a powerful and popular programmer&apos;s text editor in the late 1980s and early 1990s, developed by UnderWare Inc.",
-	"icon": "media/brief128.png",
+	"description": "Adds key bindings and functionality that attempts to emulate many features of the original BRIEF MS-DOS application.",
+	"icon": "media/brief4vscode_128.png",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/ralphkw1/brief4vscode.git"
 	},
 	"publisher": "rkdawenterprises",
-	"version": "1.0.4",
+	"version": "1.0.5",
 	"license": "Apache2",
 	"keywords": [
 		"brief"
