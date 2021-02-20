@@ -1,4 +1,5 @@
 
+import { time } from 'console';
 import * as vscode from 'vscode';
 
 export class Status_bar
@@ -78,8 +79,19 @@ export class Status_bar
 
         if( message )
         {
+            let timeout = 3000;
+            if( timeout_in_ms ) { timeout = timeout_in_ms; }
+            let full_message = `$(alert)<${message}>`;
             this.temporary_message =
-                vscode.window.setStatusBarMessage( `$(alert)<${message}>`, timeout_in_ms ? timeout_in_ms : 2000 );
+                vscode.window.setStatusBarMessage( full_message, timeout );
         }
+    };
+
+    public set_temporary_message_fix = ( message: string | null, timeout_in_ms?: number ): void =>
+    {
+        setTimeout( () =>
+            {
+                this.set_temporary_message( message, timeout_in_ms );
+            }, 10 );
     };
 }

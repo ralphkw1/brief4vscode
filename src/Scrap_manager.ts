@@ -1,18 +1,15 @@
 
 import * as vscode from 'vscode';
-import { Status_bar } from './Status_bar';
 
 export class Scrap_manager
 {
     private scrap_buffer: Scrap_buffer;
-    private status_bar: Status_bar;
 
     private current: vscode.QuickInput | null = null;
 
-    public constructor( status_bar: Status_bar )
+    public constructor()
     {
         this.scrap_buffer = new Scrap_buffer();
-        this.status_bar = status_bar;
 
         this.current = null;
 
@@ -72,44 +69,48 @@ export class Scrap_manager
         this.push_to_system_clipboard( item );
     };
 
-    public paste = <T extends string>( item: T ) =>
+    public paste = async <T extends string>( item: T ): Promise<void> =>
     {
-        let editor = vscode.window.activeTextEditor;
-        if( editor )
-        {
-            editor.edit( ( editBuilder: vscode.TextEditorEdit ) =>
-            {
-                let editor = vscode.window.activeTextEditor;
-                if( editor )
-                {
-                    editBuilder.insert( editor.selection.active, item );
-                    this.push_to_system_clipboard( item );
-                }
-            } );
-        }
-    };
-
-    public open_scrap_dialog = async (): Promise<void> =>
-    {
-        try
+        return await new Promise( ( resolve, reject ) =>
         {
             let editor = vscode.window.activeTextEditor;
             if( editor )
             {
-                let item = await this.show_scrap_dialog();
-                if( item )
+                editor.edit( ( editBuilder: vscode.TextEditorEdit ) =>
                 {
-                    this.paste<string>( item );
-                }
+                    let editor = vscode.window.activeTextEditor;
+                    if( editor )
+                    {
+                        editBuilder.delete( editor.selection );
+                        editBuilder.insert( editor.selection.active, item );
+                    }
+                } ).
+                then( () =>
+                {
+                    this.push_to_system_clipboard( item );
+                    resolve();
+                } );
             }
-        }
-        catch( error )
+
+            reject();
+        } );
+    };
+
+    public open_scrap_dialog = async (): Promise<void> =>
+    {
+        return await new Promise( ( resolve, reject ) =>
         {
-            if( error === "empty" )
+            this.show_scrap_dialog().
+            then( async ( item: string ) =>
             {
-                this.status_bar?.set_temporary_message( "No Scrap History" );
-            }
-        }
+                await this.paste<string>( item );
+                resolve();
+            } ).
+            catch( ( error: string ) =>
+            {
+                reject( error );
+            } );
+        } );
     };
 
     private last_active: string = "";

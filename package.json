@@ -164,12 +164,12 @@
 			{
 				"key": "home",
 				"command": "brief4vscode.home",
-				"when": "editorTextFocus && brief4vscode_enabled && brief4vscode_line_marking_mode"
+				"when": "editorTextFocus && brief4vscode_enabled"
 			},
 			{
 				"key": "end",
 				"command": "brief4vscode.end",
-				"when": "editorTextFocus && brief4vscode_enabled && brief4vscode_line_marking_mode"
+				"when": "editorTextFocus && brief4vscode_enabled"
 			},
 			{
 				"key": "delete",
@@ -180,6 +180,16 @@
 				"key": "backspace",
 				"command": "brief4vscode.backspace",
 				"when": "editorTextFocus && brief4vscode_enabled && brief4vscode_line_marking_mode"
+			},
+			{
+				"key": "tab",
+				"command": "brief4vscode.tab",
+				"when": "editorTextFocus && brief4vscode_enabled && !editorReadonly && !editorTabMovesFocus && brief4vscode_line_marking_mode"
+			},
+			{
+				"key": "shift+tab",
+				"command": "brief4vscode.outdent",
+				"when": "editorTextFocus && brief4vscode_enabled && !editorReadonly && !editorTabMovesFocus && brief4vscode_line_marking_mode"
 			},
 			{
 				"key": "numpad_add",

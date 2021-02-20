@@ -45,6 +45,8 @@ export class Commands
             vscode.commands.registerCommand( "brief4vscode.home", this.home ),
             vscode.commands.registerCommand( "brief4vscode.delete", this.delete ),
             vscode.commands.registerCommand( "brief4vscode.backspace", this.backspace ),
+            vscode.commands.registerCommand( "brief4vscode.tab", this.tab ),
+            vscode.commands.registerCommand( "brief4vscode.outdent", this.outdent ),
             vscode.commands.registerCommand( "brief4vscode.line_marking_mode_toggle", this.line_marking_mode_toggle ),
             vscode.commands.registerCommand( "brief4vscode.copy", this.copy ),
             vscode.commands.registerCommand( "brief4vscode.cut", this.cut ),
@@ -53,7 +55,8 @@ export class Commands
 
         context.subscriptions.push(
             vscode.window.onDidChangeActiveTextEditor( this.on_did_change_active_text_editor ),
-            vscode.window.onDidChangeWindowState( this.on_did_change_window_state ) );
+            vscode.window.onDidChangeWindowState( this.on_did_change_window_state ),
+            vscode.window.onDidChangeTextEditorSelection( this.on_did_change_text_editor_selection ) );
     }
 
     public destroy = (): void =>
@@ -116,6 +119,24 @@ export class Commands
     public on_did_change_window_state = ( e: vscode.WindowState ): void =>
     {
         this.scrap_manager.add_from_system_clipboard();
+    };
+
+    public on_did_change_text_editor_selection = ( e: vscode.TextEditorSelectionChangeEvent ): void =>
+    {
+        if( e.kind === vscode.TextEditorSelectionChangeKind.Mouse )
+        {
+            let editor = vscode.window.activeTextEditor;
+            if( editor )
+            {
+                let position = editor.selection.active;
+
+                if( this.is_line_marking_mode )
+                {
+                    this.select_lines( this.line_selection_start, position.line );
+                    return;
+                }
+            }
+        }
     };
 
     public type_command = ( args: { text: string } ): void =>
@@ -340,22 +361,172 @@ export class Commands
 
     public home = ( args: any[] ): void =>
     {
+        let editor = vscode.window.activeTextEditor;
+        if( editor )
+        {
+            let position = editor.selection.active;
+
+            let character = position.character;
+            let line = position.line;
+
+            let visible_top_line = editor.visibleRanges[0].start.line;
+
+            let at_file_start = ( ( line === 0 ) && ( character === 0 ) );
+            let at_window_start_normal_mode = ( ( line === visible_top_line ) && ( character === 0 ) );
+            let at_window_start_line_marking_mode = this.is_line_marking_mode && ( ( line === visible_top_line + 1 ) && ( character === 0 ) );
+            let at_window_start = at_window_start_normal_mode || at_window_start_line_marking_mode;
+            let at_line_start = ( character === 0 );
+
+            if( at_file_start )
+            {
+                return;
+            }
+
+            if( at_window_start )
+            {
+                let new_position = new vscode.Position( 0, 0 );
+                if( this.is_line_marking_mode )
+                {
+                    this.select_lines( this.line_selection_start, new_position.line );
+                }
+                else
+                {
+                    editor.selection = new vscode.Selection( new_position, new_position );
+                }
+                editor.revealRange( new vscode.Range( new_position, new_position ) );
+                return;
+            }
+
+            if( at_line_start )
+            {
+                let new_position = new vscode.Position( visible_top_line, 0 );
+                if( this.is_line_marking_mode )
+                {
+                    this.select_lines( this.line_selection_start, new_position.line );
+                }
+                else
+                {
+                    editor.selection = new vscode.Selection( new_position, new_position );
+                }
+                return;
+            }
+
+            let new_position = new vscode.Position( line, 0 );
+            if( this.is_line_marking_mode )
+            {
+                this.select_lines( this.line_selection_start, new_position.line );
+            }
+            else
+            {
+                editor.selection = new vscode.Selection( new_position, new_position );
+            }
+
+            return;
+        }
+
         vscode.commands.executeCommand( "cursorHome", args );
     };
 
     public end = ( args: any[] ): void =>
     {
+        let editor = vscode.window.activeTextEditor;
+        if( editor )
+        {
+            let position = editor.selection.active;
+
+            let character = position.character;
+            let line = position.line;
+
+            let line_end = editor.document.validatePosition(
+                new vscode.Position( line, editor.document.lineAt( line ).text.length ) );
+            let visible_end_line = editor.visibleRanges[0].end.line;
+            let visible_end_position = editor.document.validatePosition(
+                new vscode.Position( visible_end_line, editor.document.lineAt( visible_end_line ).text.length ) );
+            let visible_end_minus_1_position = editor.document.validatePosition(
+                new vscode.Position( visible_end_line - 1, editor.document.lineAt( visible_end_line - 1 ).text.length ) );
+            let file_end_line = editor.document.lineCount - 1;
+            let file_end_position = editor.document.validatePosition(
+                new vscode.Position( file_end_line, editor.document.lineAt( file_end_line ).text.length ) );
+
+            let at_file_end = ( ( line === file_end_line ) && ( character === file_end_position.character ) );
+            let at_window_end_normal_mode = ( ( ( line === visible_end_line ) && ( character === visible_end_position.character ) ) ||
+                ( ( line === visible_end_line - 1 ) && ( character === visible_end_minus_1_position.character ) ) );
+            let at_window_end_line_marking_mode = ( ( line === visible_end_line ) || ( line === visible_end_line - 1 ) );
+            let at_window_end = at_window_end_normal_mode || at_window_end_line_marking_mode;
+            let at_line_end = ( ( character === line_end.character ) || ( this.is_line_marking_mode ) );
+
+            if( at_file_end )
+            {
+                return;
+            }
+
+            if( at_window_end )
+            {
+                if( this.is_line_marking_mode )
+                {
+                    this.select_lines( this.line_selection_start, file_end_position.line );
+                }
+                else
+                {
+                    editor.selection = new vscode.Selection( file_end_position, file_end_position );
+                }
+
+                editor.revealRange( new vscode.Range( file_end_position, file_end_position ) );
+
+                return;
+            }
+
+            if( at_line_end )
+            {
+                if( this.is_line_marking_mode )
+                {
+                    this.select_lines( this.line_selection_start, visible_end_position.line - 1 );
+                }
+                else
+                {
+                    editor.selection = new vscode.Selection( visible_end_position, visible_end_position );
+                }
+
+                return;
+            }
+
+            if( this.is_line_marking_mode )
+            {
+                this.select_lines( this.line_selection_start, line_end.line );
+            }
+            else
+            {
+                editor.selection = new vscode.Selection( line_end, line_end );
+            }
+
+            return;
+        }
+
         vscode.commands.executeCommand( "cursorEnd", args );
     };
 
     public delete = ( args: any[] ): void =>
     {
-        vscode.commands.executeCommand( "deleteRight", args ).then( () => { this.stop_all_marking_modes(); } );
+        vscode.commands.executeCommand( "deleteRight", args ).
+        then( () => { this.stop_all_marking_modes(); } );
     };
 
     public backspace = ( args: any[] ): void =>
     {
-        vscode.commands.executeCommand( "deleteLeft", args ).then( () => { this.stop_all_marking_modes(); } );
+        vscode.commands.executeCommand( "deleteLeft", args ).
+        then( () => { this.stop_all_marking_modes(); } );
+    };
+
+    public tab = ( args: any[] ): void =>
+    {
+        vscode.commands.executeCommand( "tab", args ).
+        then( () => { this.stop_all_marking_modes(); } );
+    };
+
+    public outdent = ( args: any[] ): void =>
+    {
+        vscode.commands.executeCommand( "outdent", args ).
+        then( () => { this.stop_all_marking_modes(); } );
     };
 
     public is_any_marking_mode = (): boolean =>
@@ -407,7 +578,8 @@ export class Commands
             editor.edit( builder =>
                 {
                     builder.delete( selection );
-                } ).then( () =>
+                } ).
+                then( () =>
                 {
                     this.stop_all_marking_modes();
                 } );
@@ -416,13 +588,28 @@ export class Commands
 
     public paste = ( args: any[] ): void =>
     {
-        vscode.commands.executeCommand( "editor.action.clipboardPasteAction", args );
-        this.scrap_manager.add_from_system_clipboard( true );
+        vscode.commands.executeCommand( "editor.action.clipboardPasteAction", args ).
+        then( () =>
+        {
+            this.scrap_manager.add_from_system_clipboard( true );
+            this.stop_all_marking_modes();
+        } );
     };
 
-    public open_scrap_dialog = async ( args: any[] ): Promise<void> =>
+    public open_scrap_dialog = ( args: any[] ): void =>
     {
-        this.scrap_manager.open_scrap_dialog();
+        this.scrap_manager.open_scrap_dialog().
+        catch( ( error: string ) =>
+        {
+            if( error === "empty" )
+            {
+                this.status_bar.set_temporary_message_fix( "No Scrap History" );
+            }
+        } ).
+        finally( () =>
+        {
+            this.stop_all_marking_modes();
+        } );
     };
 
     public get_number_of_selected_lines( editor: vscode.TextEditor | null ): number
