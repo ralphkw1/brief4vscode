@@ -5,7 +5,7 @@ import * as vscode from 'vscode';
 export class Status_bar
 {
     private overstrike_mode_message: vscode.Disposable | null = null;
-    private line_marking_mode_message: vscode.Disposable | null = null;
+    private marking_mode_message: vscode.Disposable | null = null;
     private temporary_message: vscode.Disposable | null = null;
 
     public constructor()
@@ -26,10 +26,10 @@ export class Status_bar
             this.overstrike_mode_message = null;
         }
 
-        if( this.line_marking_mode_message )
+        if( this.marking_mode_message )
         {
-            this.line_marking_mode_message.dispose();
-            this.line_marking_mode_message = null;
+            this.marking_mode_message.dispose();
+            this.marking_mode_message = null;
         }
 
         if( this.temporary_message )
@@ -54,18 +54,27 @@ export class Status_bar
         }
     };
 
-    public set_line_marking_mode = ( is_line_marking_mode: boolean ): void =>
+    public set_marking_mode = ( is_marking_mode: boolean, type?: string ): void =>
     {
-        if( this.line_marking_mode_message )
+        if( this.marking_mode_message )
         {
-            this.line_marking_mode_message.dispose();
-            this.line_marking_mode_message = null;
+            this.marking_mode_message.dispose();
+            this.marking_mode_message = null;
         }
 
-        if( is_line_marking_mode )
+        if( is_marking_mode )
         {
-            this.line_marking_mode_message =
-                vscode.window.setStatusBarMessage( `$(alert)<LINE-MARKING-MODE>` );
+            if( !type )
+            {
+                this.marking_mode_message =
+                    vscode.window.setStatusBarMessage( `$(alert)<MARKING-MODE>` );
+            }
+            else
+            {
+                this.marking_mode_message =
+                    vscode.window.setStatusBarMessage( `$(alert)<${type}-MARKING-MODE>` );
+            }
+
         }
     };
 

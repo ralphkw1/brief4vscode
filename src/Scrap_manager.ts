@@ -97,6 +97,7 @@ export class Scrap_manager
                 then( () =>
                 {
                     this.push_to_system_clipboard( item );
+                    this.scrap_buffer.add_exclusive( item );
                     resolve();
                 } );
             }

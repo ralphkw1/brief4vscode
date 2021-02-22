@@ -8,7 +8,7 @@
 		"url": "https://github.com/ralphkw1/brief4vscode.git"
 	},
 	"publisher": "rkdawenterprises",
-	"version": "1.0.5",
+	"version": "1.0.6",
 	"license": "Apache2",
 	"keywords": [
 		"brief"
@@ -102,6 +102,11 @@
 				"when": "editorTextFocus && brief4vscode_enabled"
 			},
 			{
+				"key": "alt+o",
+				"command": "renameFile",
+				"when": "editorTextFocus && !editorReadonly && brief4vscode_enabled"
+			},
+			{
 				"key": "alt+x",
 				"command": "workbench.action.quit",
 				"when": "editorTextFocus && brief4vscode_enabled"
@@ -113,7 +118,7 @@
 			},
 			{
 				"key": "ctrl+x",
-				"command": "workbench.action.closeActiveEditor",
+				"command": "brief4vscode.save_and_exit",
 				"when": "editorTextFocus && brief4vscode_enabled"
 			},
 			{
@@ -137,29 +142,49 @@
 				"when": "editorTextFocus && !editorReadonly && brief4vscode_enabled"
 			},
 			{
+				"key": "alt+m",
+				"command": "brief4vscode.marking_mode_toggle",
+				"when": "editorTextFocus && brief4vscode_enabled"
+			},
+			{
 				"key": "alt+l",
 				"command": "brief4vscode.line_marking_mode_toggle",
 				"when": "editorTextFocus && brief4vscode_enabled"
 			},
 			{
+				"key": "alt+c",
+				"command": "brief4vscode.column_marking_mode_toggle",
+				"when": "editorTextFocus && brief4vscode_enabled"
+			},
+			{
 				"key": "down",
 				"command": "brief4vscode.down",
-				"when": "editorTextFocus && brief4vscode_enabled && brief4vscode_line_marking_mode"
+				"when": "editorTextFocus && brief4vscode_enabled && brief4vscode_marking_mode"
 			},
 			{
 				"key": "up",
 				"command": "brief4vscode.up",
-				"when": "editorTextFocus && brief4vscode_enabled && brief4vscode_line_marking_mode"
+				"when": "editorTextFocus && brief4vscode_enabled && brief4vscode_marking_mode"
+			},
+			{
+				"key": "left",
+				"command": "brief4vscode.left",
+				"when": "editorTextFocus && brief4vscode_enabled && brief4vscode_marking_mode"
+			},
+			{
+				"key": "right",
+				"command": "brief4vscode.right",
+				"when": "editorTextFocus && brief4vscode_enabled && brief4vscode_marking_mode"
 			},
 			{
 				"key": "pagedown",
 				"command": "brief4vscode.page_down",
-				"when": "editorTextFocus && brief4vscode_enabled && brief4vscode_line_marking_mode"
+				"when": "editorTextFocus && brief4vscode_enabled && brief4vscode_marking_mode"
 			},
 			{
 				"key": "pageup",
 				"command": "brief4vscode.page_up",
-				"when": "editorTextFocus && brief4vscode_enabled && brief4vscode_line_marking_mode"
+				"when": "editorTextFocus && brief4vscode_enabled && brief4vscode_marking_mode"
 			},
 			{
 				"key": "home",
@@ -174,22 +199,22 @@
 			{
 				"key": "delete",
 				"command": "brief4vscode.delete",
-				"when": "editorTextFocus && brief4vscode_enabled && brief4vscode_line_marking_mode"
+				"when": "editorTextFocus && brief4vscode_enabled && brief4vscode_marking_mode"
 			},
 			{
 				"key": "backspace",
 				"command": "brief4vscode.backspace",
-				"when": "editorTextFocus && brief4vscode_enabled && brief4vscode_line_marking_mode"
+				"when": "editorTextFocus && brief4vscode_enabled && brief4vscode_marking_mode"
 			},
 			{
 				"key": "tab",
 				"command": "brief4vscode.tab",
-				"when": "editorTextFocus && brief4vscode_enabled && !editorReadonly && !editorTabMovesFocus && brief4vscode_line_marking_mode"
+				"when": "editorTextFocus && brief4vscode_enabled && !editorReadonly && !editorTabMovesFocus && brief4vscode_marking_mode"
 			},
 			{
 				"key": "shift+tab",
 				"command": "brief4vscode.outdent",
-				"when": "editorTextFocus && brief4vscode_enabled && !editorReadonly && !editorTabMovesFocus && brief4vscode_line_marking_mode"
+				"when": "editorTextFocus && brief4vscode_enabled && !editorReadonly && !editorTabMovesFocus && brief4vscode_marking_mode"
 			},
 			{
 				"key": "numpad_add",
@@ -210,6 +235,61 @@
 				"key": "shift+insert",
 				"command": "brief4vscode.open_scrap_dialog",
 				"when": "editorTextFocus && !editorReadonly && brief4vscode_enabled"
+			},
+			{
+				"key": "alt+insert",
+				"command": "brief4vscode.swap",
+				"when": "editorTextFocus && !editorReadonly && brief4vscode_enabled"
+			},
+			{
+				"key": "ctrl+home",
+				"command": "brief4vscode.top_of_window",
+				"when": "editorTextFocus && brief4vscode_enabled"
+			},
+			{
+				"key": "ctrl+end",
+				"command": "brief4vscode.end_of_window",
+				"when": "editorTextFocus && brief4vscode_enabled"
+			},
+			{
+				"key": "ctrl+pageup",
+				"command": "cursorTop",
+				"when": "editorTextFocus && brief4vscode_enabled"
+			},
+			{
+				"key": "ctrl+pagedown",
+				"command": "cursorBottom",
+				"when": "editorTextFocus && brief4vscode_enabled"
+			},
+			{
+				"key": "ctrl+right",
+				"command": "cursorWordEndRight",
+				"when": "editorTextFocus && brief4vscode_enabled"
+			},
+			{
+				"key": "ctrl+left",
+				"command": "cursorWordLeft",
+				"when": "editorTextFocus && brief4vscode_enabled"
+			},
+			{
+				"key": "alt+g",
+				"command": "workbench.action.gotoLine",
+				"when": "editorTextFocus && brief4vscode_enabled"
+			},
+			{
+				"key": "ctrl+t",
+				"command": "brief4vscode.line_to_top_of_window",
+				"when": "editorTextFocus && brief4vscode_enabled"
+			},
+			{
+				"key": "ctrl+c",
+				"command": "brief4vscode.center_line_in_window",
+				"when": "editorTextFocus && brief4vscode_enabled"
+			},
+			{
+				"key": "ctrl+b",
+				"command": "brief4vscode.line_to_bottom_of_window",
+				"when": "editorTextFocus && brief4vscode_enabled"
 			}
 		]
 	},
