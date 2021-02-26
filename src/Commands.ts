@@ -18,7 +18,7 @@ export class Commands
 
     private is_marking_mode: boolean;
     private is_line_marking_mode: boolean;
-    // private is_column_marking_mode: boolean;
+    private is_column_marking_mode: boolean;
 
     private selection_start: vscode.Position | null;
     private selection_end: vscode.Position | null;
@@ -26,8 +26,8 @@ export class Commands
     private line_selection_start: vscode.Position | null;
     private line_selection_end: vscode.Position | null;
 
-    // private column_selection_start: vscode.Position | null;
-    // private column_selection_end: vscode.Position | null;
+    private column_selection_start: vscode.Position | null;
+    private column_selection_end: vscode.Position | null;
 
     private configuration: Configuration | null;
 
@@ -44,7 +44,7 @@ export class Commands
 
         this.is_marking_mode = false;
         this.is_line_marking_mode = false;
-        // this.is_column_marking_mode = false;
+        this.is_column_marking_mode = false;
 
         this.selection_start = null;
         this.selection_end = null;
@@ -52,8 +52,8 @@ export class Commands
         this.line_selection_start = null;
         this.line_selection_end = null;
 
-        // this.column_selection_start = null;
-        // this.column_selection_end = null;
+        this.column_selection_start = null;
+        this.column_selection_end = null;
 
         context.subscriptions.push(
             vscode.commands.registerCommand( "type", this.type_command ),
@@ -182,7 +182,7 @@ export class Commands
 
                 if( this.is_line_marking_mode && this.line_selection_start )
                 {
-                    this.select_lines( this.line_selection_start, cursor_position );
+                    this.select_lines_with_position( this.line_selection_start, cursor_position );
                     return;
                 }
             }
@@ -227,11 +227,11 @@ export class Commands
     {
         this.is_marking_mode = false;
         this.is_line_marking_mode = false;
-        // this.is_column_marking_mode = false;
+        this.is_column_marking_mode = false;
 
         this.selection_start = this.selection_end = null;
         this.line_selection_start = this.line_selection_end = null;
-        // this.column_selection_start = this.column_selection_end = null;
+        this.column_selection_start = this.column_selection_end = null;
 
         this.status_bar?.clear_all();
 
@@ -255,8 +255,8 @@ export class Commands
 
     public column_marking_mode_toggle = ( args: any[] | null ): void =>
     {
-        // this.is_column_marking_mode = !this.is_column_marking_mode;
-        // this.set_column_marking_mode( this.is_column_marking_mode );
+        this.is_column_marking_mode = !this.is_column_marking_mode;
+        this.set_column_marking_mode( this.is_column_marking_mode );
     };
 
     private set_marking_mode = ( is_marking_mode: boolean ): void =>
@@ -303,39 +303,41 @@ export class Commands
         }
         else
         {
-            this.select_lines();
+            this.select_lines_with_position();
         }
     };
 
-    // private set_column_marking_mode = ( is_column_marking_mode: boolean ): void =>
-    // {
-    //     if( is_column_marking_mode )
-    //     {
-    //         this.set_overstrike_mode( false );
-    //     }
+    private set_column_marking_mode = ( is_column_marking_mode: boolean ): void =>
+    {
+        this.stop_all_marking_modes();
 
-    //     this.is_column_marking_mode = is_column_marking_mode;
-    //     this.status_bar?.set_marking_mode( is_column_marking_mode, "COLUMN" );
+        if( is_column_marking_mode )
+        {
+            this.set_overstrike_mode( false );
+        }
 
-    //     vscode.commands.executeCommand( "setContext", "brief4vscode_marking_mode", is_column_marking_mode );
+        this.is_column_marking_mode = is_column_marking_mode;
+        this.status_bar?.set_marking_mode( is_column_marking_mode, "COLUMN" );
 
-    //     if( !is_column_marking_mode )
-    //     {
-    //         this.stop_all_marking_modes();
-    //     }
-    //     else
-    //     {
-    //         this.select_columns();
-    //     }
-    // };
+        vscode.commands.executeCommand( "setContext", "brief4vscode_marking_mode", is_column_marking_mode );
+
+        if( !is_column_marking_mode )
+        {
+            this.stop_all_marking_modes();
+        }
+        else
+        {
+            this.select_columns();
+        }
+    };
 
     private select = ( start?: vscode.Position, end?: vscode.Position ): vscode.Selection | null =>
     {
         let editor = vscode.window.activeTextEditor;
         if( editor )
         {
-            if( !start ) { start = editor.selection.active; }
-            if( !end ) { end = start; }
+            start = start ?? editor.selection.active;
+            end = end ?? start;
 
             this.selection_start = editor.document.validatePosition( start );
             this.selection_end = editor.document.validatePosition( end );
@@ -349,18 +351,37 @@ export class Commands
         return null;
     };
 
-    private select_lines = ( start?: vscode.Position, end?: vscode.Position ): vscode.Selection | null =>
+    private select_lines = ( start?: number, end?: number ): vscode.Selection | null =>
     {
         let editor = vscode.window.activeTextEditor;
         if( editor )
         {
-            if( !start ) { start = editor.selection.active; }
-            if( !end ) { end = start; }
+            start = start ?? editor.selection.active.line;
+            end = end ?? start;
+
+            if( start < 0 ) { start = 0; }
+            if( end < 0 ) { end = 0; }
+
+            return this.select_lines_with_position( new vscode.Position( start, 0 ),
+                new vscode.Position( end, 0 ) );
+        }
+
+        return null;
+    };
+
+    private select_lines_with_position = ( start?: vscode.Position, end?: vscode.Position ): vscode.Selection | null =>
+    {
+        let editor = vscode.window.activeTextEditor;
+        if( editor )
+        {
+            start = start ?? editor.selection.active;
+            end = end ?? start;
 
             this.line_selection_start = editor.document.validatePosition( new vscode.Position( start.line, 0 ) );
             let end_line_range = editor.document.lineAt( editor.document.validatePosition( end ) ).range;
             this.line_selection_end = end_line_range.end;
 
+            let start_position = this.line_selection_start;
             let next_line_position: vscode.Position;
             if( end.line >= start.line )
             {
@@ -369,55 +390,39 @@ export class Commands
             }
             else
             {
+                let start_line_range = editor.document.lineAt( start_position ).rangeIncludingLineBreak;
+                start_position = start_line_range.end;
                 next_line_position = end_line_range.start;
             }
 
-            let selection = new vscode.Selection( this.line_selection_start, next_line_position );
+            let selection = new vscode.Selection( start_position, next_line_position );
             editor.selection = selection;
 
             return selection;
         }
 
-    //         // if( end >= start )
-    //         // {
-    //         //     let start_position = editor.document.validatePosition( new vscode.Position( start, 0 ) );
-    //         //     this.line_selection_start = start_position.line;
-    //         //     let end_position = editor.document.validatePosition( //new vscode.Position( end, editor.document.lineAt( end ).text.length ) );
-    //         //     this.line_selection_end = end_position.line;
-    //         //     let next_line_position = editor.document.validatePosition( new vscode.Position( this.line_selection_end + 1, 0 ) );
-    //         //     let selection = new vscode.Selection( start_position, next_line_position );
-    //         //     editor.selection = selection;
-    //         //     return selection;
-    //         // }
-    //         // else
-    //         // {
-    //         //     let start_position = editor.document.validatePosition( //new vscode.Position( start, editor.document.lineAt( start ).text.length ) );
-    //         //     this.line_selection_start = start_position.line;
-    //         //     let end_position = editor.document.validatePosition( new vscode.Position( end, 0 ) );
-    //         //     this.line_selection_end = end_position.line;
-    //         //     let selection = new vscode.Selection( start_position, end_position );
-    //         //     editor.selection = selection;
-    //         //     return selection;
-    //         // }
-    //     }
-
         return null;
     };
 
-    // private select_columns = ( start?: vscode.Position, end?: vscode.Position ): vscode.Selection | null =>
-    // {
-    //     let editor = vscode.window.activeTextEditor;
-    //     if( editor )
-    //     {
-    //         if( !start ) { start = editor.selection.active; }
-    //         if( !end ) { end = start; }
+    private select_columns = ( start?: vscode.Position, end?: vscode.Position ): vscode.Selection | null =>
+    {
+        let editor = vscode.window.activeTextEditor;
+        if( editor )
+        {
+            start = start ?? editor.selection.active;
+            end = end ?? start;
 
-    //         this.column_selection_start = editor.document.validatePosition( start );
-    //         this.column_selection_end = editor.document.validatePosition( end );
-    //     }
+            // TODO: Not implemented...
+            vscode.window.showInformationMessage( `Column marking mode not implemented. Use the existing column mode.` );
+            this.stop_all_marking_modes();
+            let selection = null;
+            // TODO: end.
 
-    //     return null;
-    // };
+            return selection;
+        }
+
+        return null;
+    };
 
     public up = ( args: any[] | null ): void =>
     {
@@ -435,32 +440,18 @@ export class Commands
             return;
         }
 
-        // let editor = vscode.window.activeTextEditor;
-        // if( editor )
-        // {
-        //     if( this.is_marking_mode && this.selection_start && this.selection_end )
-        //     {
-        //         this.select( this.selection_start,
-        //             utility.validated_translate( editor.document, this.selection_end,
-        //                  { line_delta: -1, desired_character: this.selection_start.character } ) );
+        if( this.is_line_marking_mode && this.line_selection_start && this.line_selection_end )
+        {
+            let editor = vscode.window.activeTextEditor;
+            if( editor )
+            {
+                let end_line = this.line_selection_end.line - 1;
+                this.select_lines( this.line_selection_start.line, end_line );
+                editor.revealRange( new vscode.Range( this.line_selection_end, this.line_selection_end ) );
+            }
 
-        //         editor.revealRange( new vscode.Range( this.selection_end, this.selection_end ) );
-
-        //         return;
-        //     }
-
-        //     if( this.is_line_marking_mode && this.line_selection_start && this.line_selection_end )
-        //     {
-        //         // let end = this.line_selection_end - 1;
-        //         // this.select_lines( this.line_selection_start, end );
-        //         // end -= 2;
-        //         // end = ( end > 0 ) ? end : 0;
-        //         // let reveal_position = editor.document.validatePosition( new vscode.Position( end, 0 ) );
-        //         // editor.revealRange( new vscode.Range( reveal_position, reveal_position ) );
-
-        //         return;
-        //     }
-        // }
+            return;
+        }
 
         vscode.window.showInformationMessage( `Error in up()` );
 
@@ -483,30 +474,18 @@ export class Commands
             return;
         }
 
-        // let editor = vscode.window.activeTextEditor;
-        // if( editor )
-        // {
-        //     if( this.is_marking_mode && this.selection_start && this.selection_end )
-        //     {
-        //         // let end = this.selection_end.line + 1;
-        //         // if( end >= editor.document.lineCount ) { end = editor.document.lineCount - 1; }
-        //         // this.select( this.selection_start,
-        //         //     new vscode.Position( end, this.selection_end.character ) );
-        //         // editor.revealRange( new vscode.Range( this.selection_end, this.selection_end ) );
+        if( this.is_line_marking_mode && this.line_selection_start && this.line_selection_end )
+        {
+            let editor = vscode.window.activeTextEditor;
+            if( editor )
+            {
+                let end_line = this.line_selection_end.line + 1;
+                this.select_lines( this.line_selection_start.line, end_line );
+                editor.revealRange( new vscode.Range( this.line_selection_end, this.line_selection_end ) );
+            }
 
-        //         return;
-        //     }
-
-        //     if( this.is_line_marking_mode && this.line_selection_start && this.line_selection_end )
-        //     {
-        //         // this.select_lines( this.line_selection_start, this.line_selection_end + 1 );
-        //         // let next_end_line_position =
-        //         //     editor.document.validatePosition( new vscode.Position( this.line_selection_end + 1, 0 ) );
-        //         // editor.revealRange( new vscode.Range( next_end_line_position, next_end_line_position ) );
-
-        //         return;
-        //     }
-        // }
+            return;
+        }
 
         vscode.window.showInformationMessage( `Error in down()` );
 
@@ -529,24 +508,11 @@ export class Commands
             return;
         }
 
-        // let editor = vscode.window.activeTextEditor;
-        // if( editor )
-        // {
-        //     if( this.is_marking_mode && this.selection_start && this.selection_end )
-        //     {
-
-        //         return;
-        //     }
-
-        //     if( this.is_line_marking_mode && this.line_selection_start && this.line_selection_end )
-        //     {
-        //         this.up( null );
-        //         return;
-        //     }
-        // }
-
-        // if( this.is_line_marking_mode )
-        // vscode.commands.executeCommand( "cursorUp", args );
+        if( this.is_line_marking_mode )
+        {
+            this.up( null );
+            return;
+        }
 
         vscode.window.showInformationMessage( `Error in left()` );
 
@@ -569,23 +535,12 @@ export class Commands
             return;
         }
 
-        // let editor = vscode.window.activeTextEditor;
-        // if( editor )
-        // {
-        //     if( this.is_marking_mode && this.selection_start && this.selection_end )
-        //     {
-        //         return;
-        //     }
 
-        //     if( this.is_line_marking_mode && this.line_selection_start && this.line_selection_end )
-        //     {
-        //         this.down( null );
-        //         return;
-        //     }
-        // }
-
-        // if( this.is_line_marking_mode )
-        // vscode.commands.executeCommand( "cursorDown", args );
+        if( this.is_line_marking_mode )
+        {
+            this.down( null );
+            return;
+        }
 
         vscode.window.showInformationMessage( `Error in right()` );
 
@@ -608,23 +563,19 @@ export class Commands
             return;
         }
 
-        // let editor = vscode.window.activeTextEditor;
-        // if( editor )
-        // {
-        //     if( this.is_line_marking_mode && this.line_selection_start && this.line_selection_end )
-        //     {
-        //         // let lines_in_view = editor.visibleRanges[0].end.line - editor.visibleRanges[0].start.line;
+        if( this.is_line_marking_mode && this.line_selection_start && this.line_selection_end )
+        {
+            let editor = vscode.window.activeTextEditor;
+            if( editor )
+            {
+                let lines_in_view = editor.visibleRanges[0].end.line - editor.visibleRanges[0].start.line;
+                let end_line = this.line_selection_end.line - lines_in_view;
+                this.select_lines( this.line_selection_start.line, end_line );
+                editor.revealRange( new vscode.Range( this.line_selection_end, this.line_selection_end ) );
+            }
 
-        //         // let end = this.line_selection_end - lines_in_view;
-        //         // this.select_lines( this.line_selection_start, end );
-        //         // end -= 2;
-        //         // end = ( end > 0 ) ? end : 0;
-        //         // let reveal_position = editor.document.validatePosition( new vscode.Position( end, 0 ) );
-        //         // editor.revealRange( new vscode.Range( reveal_position, reveal_position ) );
-
-        //         return;
-        //     }
-        // }
+            return;
+        }
 
         vscode.window.showInformationMessage( `Error in page_up()` );
 
@@ -647,21 +598,19 @@ export class Commands
             return;
         }
 
-        // let editor = vscode.window.activeTextEditor;
-        // if( editor )
-        // {
-        //     if( this.is_line_marking_mode && this.line_selection_start && this.line_selection_end )
-        //     {
-        //         // let lines_in_view = editor.visibleRanges[0].end.line - editor.visibleRanges[0].start.line;
+        if( this.is_line_marking_mode && this.line_selection_start && this.line_selection_end )
+        {
+            let editor = vscode.window.activeTextEditor;
+            if( editor )
+            {
+                let lines_in_view = editor.visibleRanges[0].end.line - editor.visibleRanges[0].start.line;
+                let end_line = this.line_selection_end.line + lines_in_view;
+                this.select_lines( this.line_selection_start.line, end_line );
+                editor.revealRange( new vscode.Range( this.line_selection_end, this.line_selection_end ) );
+            }
 
-        //         // this.select_lines( this.line_selection_start, this.line_selection_end + lines_in_view );
-        //         // let next_end_line_position =
-        //         //     editor.document.validatePosition( new vscode.Position( this.line_selection_end + 1, 0 ) );
-        //         // editor.revealRange( new vscode.Range( next_end_line_position, next_end_line_position ) );
-
-        //         return;
-        //     }
-        // }
+            return;
+        }
 
         vscode.window.showInformationMessage( `Error in page_down()` );
 
@@ -677,8 +626,9 @@ export class Commands
             let visible_top_position = editor.visibleRanges[0].start;
 
             let at_file_start = ( ( cursor_position.line === 0 ) && ( cursor_position.character === 0 ) );
-            let at_window_start = ( ( cursor_position.line === visible_top_position.line ) && ( cursor_position.character === 0 ) );
-            let at_line_start = ( cursor_position.character === 0 );
+            let at_window_start = ( ( cursor_position.line <= visible_top_position.line ) && ( cursor_position.character === 0 ) ) ||
+                ( this.is_line_marking_mode && this.line_selection_end && ( this.line_selection_end.line <= visible_top_position.line ) );
+            let at_line_start = ( cursor_position.character === 0 ) || this.is_line_marking_mode;
 
             if( at_file_start ) { return; }
 
@@ -698,6 +648,18 @@ export class Commands
                     return;
                 }
 
+                if( this.is_line_marking_mode && this.line_selection_start && this.line_selection_end )
+                {
+                    let editor = vscode.window.activeTextEditor;
+                    if( editor )
+                    {
+                        this.select_lines( this.line_selection_start.line, 0 );
+                        editor.revealRange( new vscode.Range( this.line_selection_end, this.line_selection_end ) );
+                    }
+
+                    return;
+                }
+
                 vscode.commands.executeCommand( "cursorTop", args );
 
                 return;
@@ -708,6 +670,13 @@ export class Commands
                 if( this.is_marking_mode && this.selection_start )
                 {
                     this.select( this.selection_start, visible_top_position );
+
+                    return;
+                }
+
+                if( this.is_line_marking_mode && this.line_selection_start && this.line_selection_end )
+                {
+                    this.select_lines_with_position( this.line_selection_start, visible_top_position );
 
                     return;
                 }
@@ -762,7 +731,6 @@ export class Commands
             let visible_bottom_position = editor.visibleRanges[0].end;
 
             let on_first_line = cursor_position.line === 0;
-            let on_last_line = cursor_position.line === ( editor.document.lineCount - 1 );
 
             let file_end_line_range = editor.document.lineAt( editor.document.lineCount - 1 ).range;
             let window_end_line_range = editor.document.lineAt( visible_bottom_position ).range;
@@ -772,17 +740,23 @@ export class Commands
                 ( cursor_position.character === file_end_line_range.end.character ) );
 
             let at_window_end : boolean = false;
-            at_window_end ||= ( ( cursor_position.line === window_end_line_range.end.line ) &&
+            at_window_end ||= ( ( cursor_position.line >= window_end_line_range.end.line ) &&
                 ( cursor_position.character === window_end_line_range.end.character ) );
+
             if( !on_first_line )
             {
                 let window_second_to_end_line_range = editor.document.lineAt( visible_bottom_position.line - 1 ).range;
-                at_window_end ||= ( ( cursor_position.line === window_second_to_end_line_range.end.line ) &&
+                at_window_end ||= ( ( cursor_position.line >= window_second_to_end_line_range.end.line ) &&
                 ( cursor_position.character === window_second_to_end_line_range.end.character ) );
             }
 
+            if( this.is_line_marking_mode )
+            {
+                at_window_end ||= cursor_position.line >= window_end_line_range.end.line;
+            }
+
             let at_line_end = ( cursor_position.character === current_line_range.end.character ) ||
-                ( this.is_line_marking_mode );
+                this.is_line_marking_mode;
 
             if( at_file_end ) { return; }
 
@@ -802,6 +776,14 @@ export class Commands
                     return;
                 }
 
+                if( this.is_line_marking_mode && this.line_selection_start )
+                {
+                    this.select_lines_with_position( this.line_selection_start, file_end_line_range.end );
+                    editor.revealRange( file_end_line_range );
+
+                    return;
+                }
+
                 vscode.commands.executeCommand( "cursorBottom", args );
 
                 return;
@@ -812,6 +794,13 @@ export class Commands
                 if( this.is_marking_mode && this.selection_start )
                 {
                     this.select( this.selection_start, visible_bottom_position );
+
+                    return;
+                }
+
+                if( this.is_line_marking_mode && this.line_selection_start )
+                {
+                    this.select_lines_with_position( this.line_selection_start, window_end_line_range.end );
 
                     return;
                 }
@@ -874,7 +863,7 @@ export class Commands
             let selection: vscode.Selection | null = editor.selection;
             if( selection.isEmpty )
             {
-                // selection = this.select_lines();
+                selection = this.select_lines();
             }
 
             if( selection )

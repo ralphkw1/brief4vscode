@@ -9,6 +9,7 @@ export interface Configuration
 {
 	default_cursor_style: vscode.TextEditorCursorStyle | undefined;
 	use_brief_home: boolean | undefined;
+	paste_lines_at_home: boolean | undefined;
 };
 
 let commands: Commands | null = null;
@@ -59,7 +60,8 @@ export function get_configuration(): Configuration
 
 	return {
 		default_cursor_style: cursor_style,
-		use_brief_home: brief4vscode_configuration.get<boolean>( "use_brief_home" )
+		use_brief_home: brief4vscode_configuration.get<boolean>( "use_brief_home" ),
+		paste_lines_at_home: brief4vscode_configuration.get<boolean>( "paste_lines_at_home" )
 	};
 }
 

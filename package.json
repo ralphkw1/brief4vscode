@@ -8,7 +8,7 @@
 		"url": "https://github.com/ralphkw1/brief4vscode.git"
 	},
 	"publisher": "rkdawenterprises",
-	"version": "1.0.6",
+	"version": "1.0.7",
 	"license": "Apache2",
 	"keywords": [
 		"brief"
@@ -47,6 +47,11 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Use home key functionality as documented in Brief. This disables the normal \"smart\" home functionality. Set to false to restore \"smart\" home key functionality, but still maintain Brief home-home-home key functionality."
+				},
+				"brief4vscode.paste_lines_at_home": {
+					"type": "boolean",
+					"default": true,
+					"description": "If the item in the scrap history buffer being pasted is a full line, then paste it at the beginning of the current line instead of at the current cursor location."
 				}
 			}
 		},
