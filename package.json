@@ -40,6 +40,16 @@
 				}
 			]
 		},
+		"configuration": {
+			"title": "Brief4vscode",
+			"properties": {
+				"brief4vscode.use_brief_home": {
+					"type": "boolean",
+					"default": true,
+					"description": "Use home key functionality as documented in Brief. This disables the normal \"smart\" home functionality. Set to false to restore \"smart\" home key functionality, but still maintain Brief home-home-home key functionality."
+				}
+			}
+		},
 		"commands": [
 			{
 				"command": "brief4vscode.enable_brief4vscode",

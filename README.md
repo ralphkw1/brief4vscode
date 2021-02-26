@@ -6,7 +6,6 @@
 <h3 style="color:#0000AA">Commands</h3>
 <p>The following are the key bindings and commands implemented by the plugin. Some Brief functionality is currently the Visual Studio Code default, or close enough. No changes to mouse functionality.</p>
 <p>If you are looking for the full Brief command set, try the following link. &quot;<a href="https://christopoulos.users.sourceforge.net/cbrief/brief.php" target="_blank">About BRIEF Text Editor</a>&quot;. Otherwise, search for it with your favorite search engine.</p>
-<p>NOTE! The plug-in does not currently work with line/code folding, at least not very well. So best to unfold the area of the file you are working on if you want the commands to work as expected.</p>
 </div>
 <table style="background-color:#F5FFFF">
     <caption style="color:#0000AA; background-color:#F5FFFF">Help and Undo/Redo</caption>
@@ -59,7 +58,7 @@
     <tr><th width="15%">Key Binding</th><th width="20%">Command</th><th width="65%">Description</th></tr>
     <tr><td>Alt + M</td><td>Mark toggle</td><td>Toggle normal marking mode. Use cursor or single click mouse to move cursor and expand selection.</td></tr>
     <tr><td>Alt + L</td><td>Line Mark toggle</td><td>Toggle line marking mode. Use cursor or single click mouse to move cursor and expand selection.</td></tr>
-    <tr><td>Alt + C</td><td>Column Mark toggle</td><td>Toggle column marking mode. Use cursor or single click mouse to move cursor and expand selection.</td></tr>
+    <tr><td>Alt + C</td><td>Column Mark toggle<sup>*</sup></td><td>Toggle column marking mode. Use cursor or single click mouse to move cursor and expand selection.</td></tr>
     <tr><td>Alt + <i>[1-10]</i></td><td>Drop bookmark</td><td>Inserts a numbered (1-10) bookmark into the editor and the current cursor posiotion. Bookmark 10 is dropped using the 0 key.</td></tr>
     <tr><td>Alt + J</td><td>Jump to bookmark</td><td>Waits for a bookmark number, <i>[1-10]</i> then jumps to that number. Bookmark 10 is the 0 key.</td></tr>
 </table>
@@ -82,6 +81,12 @@
     <tr><td>Shift + F6</td><td>Translate again</td><td>Translates (replaces) forwards using previous search/replace parameters. Only works if the search dialog is open.</td></tr>
     <tr><td>Ctrl + R</td><td>Repeat</td><td>Opens the &quot;Repeat Dialog&quot;, then repeats the requested command, or inserts the requested char/string into the editor, the requested number of times. Not all commands are supported or work well. Actually accepts any &quot;non-printable&quot; key sequence, so not sure what works actually.</td></tr>
 </table>
+<div style="background-color:#F5FFFF">
+<h3 style="color:#0000AA">Notes</h3>
+<p><sup>*</sup> Can't properly implement "Column Marking Mode" until that mode is improved in Visual Studio Code API. You'll just have to struggle with using the existing column functionality.</p>
+<p>The plug-in may not currently work with line/code folding, at least not very well. So best to unfold the area of the file you are working on if you want the commands to work as expected.</p>
+<p>I can only account for Brief defined keystrokes in the marking modes. Turn off marking modes to use those. I couldn't find a way to generally monitor all keystrokes.
+</div>
 <div style="background-color:#F5FFFF">
 <h3 style="color:#0000AA">Contact</h3>
 <p>You can email me at <a href="mailto:&#109;&#97;&#105;&#108;&#116;&#111;&#58;rkdawenterprises&#64;gmail&#46;com&#46;no!spam?subject=Brief Editor Emulation for Visual Studio Code">rkdawenterprises&#64;gmail&#46;com&#46;com&#46;no!spam</a>. I don't look at this very often so it may take a while to hear back.</p>
