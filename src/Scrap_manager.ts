@@ -1,26 +1,33 @@
 
 import * as vscode from 'vscode';
 
+import { Local_storage } from './Local_storage';
+
 export class Scrap_manager
 {
     private scrap_buffer: Scrap_buffer;
 
     private current: vscode.QuickInput | null = null;
 
-    private storage: vscode.Memento;
+    private storage: Local_storage;
 
-    public constructor( storage: vscode.Memento )
+    public constructor( storage: Local_storage )
     {
         this.storage = storage;
 
-        this.scrap_buffer = this.get_stored_scrap();
-
         this.current = null;
+
+        this.scrap_buffer = new Scrap_buffer();
     }
+
+    public initialize = (): void =>
+    {
+        this.get_stored_scrap();
+    };
 
     public destroy = (): void =>
     {
-        this.put_stored_scrap();
+        this.store_scrap_items();
 
         this.current?.dispose();
 
@@ -32,21 +39,24 @@ export class Scrap_manager
         return this.scrap_buffer.length();
     };
 
-    private get_stored_scrap = (): Scrap_buffer =>
+    private get_stored_scrap = (): void =>
     {
-        let scrap_buffer = this.storage.get( "scrap_buffer", null );
-        if( scrap_buffer )
+        let item_list_as_string = this.storage.get_global_value( "scrap_buffer" );
+        if( item_list_as_string )
         {
-            return Scrap_buffer.deserialize( scrap_buffer );
+            this.scrap_buffer.deserialize_item_list( item_list_as_string );
         }
-
-        return new Scrap_buffer();
     };
 
-    private put_stored_scrap = (): void =>
+    private store_scrap_items = (): Thenable<void> =>
     {
-        let object_as_string = Scrap_buffer.serialize( this.scrap_buffer );
-        this.storage.update( "scrap_buffer", object_as_string );
+        let item_list_as_string = this.scrap_buffer.serialize_item_list();
+        if( item_list_as_string )
+        {
+            return this.storage.set_global_value( "scrap_buffer", item_list_as_string );
+        }
+
+        return this.storage.delete_global_value( "scrap_buffer" );
     };
 
     public add_from_system_clipboard = ( move_to_front?: boolean ): void =>
@@ -64,21 +74,24 @@ export class Scrap_manager
                     this.scrap_buffer.add_if_missing( text );
                 }
             }
+
+            this.store_scrap_items();
         } );
     };
 
-    public push_to_system_clipboard = <T extends string>( item: T ): void =>
+    public push_to_system_clipboard = ( item: string ): void =>
     {
         vscode.env.clipboard.writeText( item );
     };
 
-    public copy = <T extends string>( item: T ): void =>
+    public copy = ( item: string ): void =>
     {
         this.scrap_buffer.add_exclusive( item );
+        this.store_scrap_items();
         this.push_to_system_clipboard( item );
     };
 
-    public paste = async <T extends string>( item: T ): Promise<void> =>
+    public paste = async ( item: string ): Promise<void> =>
     {
         return await new Promise( ( resolve, reject ) =>
         {
@@ -98,6 +111,7 @@ export class Scrap_manager
                 {
                     this.push_to_system_clipboard( item );
                     this.scrap_buffer.add_exclusive( item );
+                    this.store_scrap_items();
                     resolve();
                 } );
             }
@@ -113,7 +127,7 @@ export class Scrap_manager
             this.show_scrap_dialog().
             then( async ( item: string ) =>
             {
-                await this.paste<string>( item );
+                await this.paste( item );
                 resolve();
             } ).
             catch( ( error: string ) =>
@@ -165,6 +179,7 @@ export class Scrap_manager
                         if( id === "clear-all" )
                         {
                             this.scrap_buffer.remove_all();
+                            this.store_scrap_items();
                             reject( "empty" );
                             input.hide();
                         }
@@ -192,7 +207,7 @@ export class Scrap_manager
                         if( e.length > 0 )
                         {
                             let index = parseInt( e[0].label ) - 1;
-                            let item = this.scrap_buffer.get_item<string>( index );
+                            let item = this.scrap_buffer.get_item( index );
                             if( item )
                             {
                                 resolve( item );
@@ -248,14 +263,19 @@ class Scrap_buffer
     {
     };
 
-    public static serialize = ( scrap_buffer: Scrap_buffer ): string =>
+    public serialize_item_list = (): string | null =>
     {
-        return Buffer.from( JSON.stringify( scrap_buffer ), "utf8" ).toString( "base64" );
+        if( this.item_list.length > 0 )
+        {
+            return Buffer.from( JSON.stringify( this.item_list ), "utf8" ).toString( "base64" );
+        }
+
+        return null;
     };
 
-    public static deserialize = ( items: string ): Scrap_buffer =>
+    public deserialize_item_list = ( items: string ): void =>
     {
-        return JSON.parse( Buffer.from( items, "base64" ).toString( "utf8" ) );
+        this.item_list = JSON.parse( Buffer.from( items, "base64" ).toString( "utf8" ) );
     };
 
     public get_quick_pick_items = (): vscode.QuickPickItem[] | null =>
@@ -274,7 +294,7 @@ class Scrap_buffer
         return items;
     };
 
-    public get_item = <T extends string>( index: number ): string | null =>
+    public get_item = ( index: number ): string | null =>
     {
         if( index >= 0 && index < this.length() )
         {
@@ -294,7 +314,7 @@ class Scrap_buffer
         return this.item_list.length;
     };
 
-    private add = <T extends string>( item: T ): number =>
+    private add = ( item: string ): number =>
     {
         let length = this.item_list.unshift( item );
         while( length > this.MAX_ITEMS )
@@ -306,7 +326,7 @@ class Scrap_buffer
         return this.length();
     };
 
-    private find_index = <T extends string>( item: T ): number =>
+    private find_index = ( item: string ): number =>
     {
         return this.item_list.findIndex( ( value: string ) =>
             {
@@ -314,7 +334,7 @@ class Scrap_buffer
             } );
     };
 
-    private remove = <T extends string>( item: T ): string | null =>
+    private remove = ( item: string ): string | null =>
     {
         let index = this.find_index( item );
         if( index >= 0 )
@@ -326,12 +346,12 @@ class Scrap_buffer
         return null;
     };
 
-    public remove_all = <T extends string>(): void =>
+    public remove_all = (): void =>
     {
         this.item_list.length = 0;
     };
 
-    private move_to_front = <T extends string>( item: T ): boolean =>
+    private move_to_front = ( item: string ): boolean =>
     {
         let index = this.find_index( item );
         if( index === 0 )
@@ -349,7 +369,7 @@ class Scrap_buffer
         return true;
     };
 
-    public add_exclusive = <T extends string>( item: T ): void =>
+    public add_exclusive = ( item: string ): void =>
     {
         if( this.is_empty() )
         {
@@ -362,7 +382,7 @@ class Scrap_buffer
         }
     };
 
-    public add_if_missing = <T extends string>( item: T ): void =>
+    public add_if_missing = ( item: string ): void =>
     {
         if( this.is_empty() || this.find_index( item ) === -1 )
         {

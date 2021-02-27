@@ -8,7 +8,7 @@
 		"url": "https://github.com/ralphkw1/brief4vscode.git"
 	},
 	"publisher": "rkdawenterprises",
-	"version": "1.0.7",
+	"version": "1.0.9",
 	"license": "Apache2",
 	"keywords": [
 		"brief"
@@ -51,7 +51,7 @@
 				"brief4vscode.paste_lines_at_home": {
 					"type": "boolean",
 					"default": true,
-					"description": "If the item in the scrap history buffer being pasted is a full line, then paste it at the beginning of the current line instead of at the current cursor location."
+					"description": "If the item in the scrap history buffer being pasted is a full line (ends with a line termination), then paste it at the beginning of the current line instead of at the current cursor location."
 				}
 			}
 		},
@@ -305,6 +305,12 @@
 				"key": "ctrl+b",
 				"command": "brief4vscode.line_to_bottom_of_window",
 				"when": "editorTextFocus && brief4vscode_enabled"
+			},
+			{
+				"key": "alt+1",
+				"command": "brief4vscode.drop_bookmark",
+				"when": "editorTextFocus && brief4vscode_enabled",
+				"args": "1"
 			}
 		]
 	},

@@ -2,17 +2,16 @@
 import * as vscode from 'vscode';
 
 import * as utility from './utility';
-
 import { Status_bar } from "./Status_bar";
-
 import { Configuration, get_configuration } from "./extension";
-
 import { Scrap_manager } from './Scrap_manager';
+import { Bookmarks_manager } from './Bookmarks_manager';
 
 export class Commands
 {
     private status_bar: Status_bar;
     private scrap_manager: Scrap_manager;
+    private bookmarks_manager: Bookmarks_manager;
 
     private is_overstrike_mode: boolean;
 
@@ -33,10 +32,12 @@ export class Commands
 
     public constructor( context: vscode.ExtensionContext,
         status_bar: Status_bar,
-        scrap_manager: Scrap_manager )
+        scrap_manager: Scrap_manager,
+        bookmarks_manager: Bookmarks_manager )
     {
         this.status_bar = status_bar;
         this.scrap_manager = scrap_manager;
+        this.bookmarks_manager = bookmarks_manager;
 
         this.scrap_manager.add_from_system_clipboard();
 
@@ -86,12 +87,15 @@ export class Commands
             vscode.commands.registerCommand( "brief4vscode.line_to_top_of_window", this.line_to_top_of_window ),
             vscode.commands.registerCommand( "brief4vscode.center_line_in_window", this.center_line_in_window ),
             vscode.commands.registerCommand( "brief4vscode.line_to_bottom_of_window", this.line_to_bottom_of_window ),
+            vscode.commands.registerCommand( "brief4vscode.drop_bookmark", this.drop_bookmark )
             );
 
         context.subscriptions.push(
             vscode.window.onDidChangeActiveTextEditor( this.on_did_change_active_text_editor ),
             vscode.window.onDidChangeWindowState( this.on_did_change_window_state ),
-            vscode.window.onDidChangeTextEditorSelection( this.on_did_change_text_editor_selection ) );
+            vscode.window.onDidChangeTextEditorSelection( this.on_did_change_text_editor_selection ),
+            vscode.workspace.onDidRenameFiles( this.bookmarks_manager.on_did_rename_files )
+            );
 
         this.configuration = get_configuration();
         this.on_configuration_changed( context, this.configuration );
@@ -225,6 +229,8 @@ export class Commands
 
     private stop_all_marking_modes = ( remove_selection?: boolean ): void =>
     {
+        vscode.commands.executeCommand( "setContext", "brief4vscode_marking_mode", false );
+
         this.is_marking_mode = false;
         this.is_line_marking_mode = false;
         this.is_column_marking_mode = false;
@@ -916,12 +922,47 @@ export class Commands
 
     public paste = ( args: any[] | null ): void =>
     {
-        vscode.commands.executeCommand( "editor.action.clipboardPasteAction", args ).
-        then( () =>
+        let is_selection = false;
+        let editor = vscode.window.activeTextEditor;
+        if( editor )
         {
-            this.scrap_manager.add_from_system_clipboard( true );
-            this.stop_all_marking_modes();
-        } );
+            is_selection = !editor.selection.isEmpty;
+        }
+
+        if( !this.configuration?.paste_lines_at_home || is_selection )
+        {
+            vscode.commands.executeCommand( "editor.action.clipboardPasteAction", args ).
+            then( () =>
+            {
+                this.scrap_manager.add_from_system_clipboard( true );
+                this.stop_all_marking_modes();
+            } );
+        }
+        else
+        {
+            vscode.env.clipboard.readText().then( ( text: string ) =>
+            {
+                if( text )
+                {
+                    const os = require( 'os' );
+                    if( text.endsWith( os.EOL ) )
+                    {
+                        let editor = vscode.window.activeTextEditor;
+                        if( editor )
+                        {
+                            utility.move_cursor( new vscode.Position( editor.selection.active.line, 0 ) );
+                        }
+                    }
+
+                    vscode.commands.executeCommand( "editor.action.clipboardPasteAction", args ).
+                    then( () =>
+                    {
+                        this.scrap_manager.add_from_system_clipboard( true );
+                        this.stop_all_marking_modes();
+                    } );
+                }
+            } );
+        }
     };
 
     public open_scrap_dialog = ( args: any[] | null ): void =>
@@ -1032,6 +1073,16 @@ export class Commands
             let start_position = editor.document.validatePosition(
                 new vscode.Position( editor.selection.active.line - viewport_length, editor.selection.active.character ) );
             editor.revealRange( new vscode.Range( start_position, editor.selection.active ) );
+        }
+    };
+
+    public drop_bookmark = ( index: string | null ): void =>
+    {
+        let editor = vscode.window.activeTextEditor;
+        if( editor && index )
+        {
+            let position = editor.selection.active;
+            this.bookmarks_manager.drop_bookmark( editor.document.uri, index, position );
         }
     };
 }
