@@ -150,9 +150,6 @@ export class Scrap_manager
         } );
     };
 
-    private last_active: string = "";
-    private last_selected: string = "";
-
     public show_scrap_dialog = async (): Promise<string> =>
     {
         const disposables: vscode.Disposable[] = [];
@@ -160,9 +157,6 @@ export class Scrap_manager
         {
             return await new Promise( ( resolve, reject ) =>
             {
-                this.last_active = "";
-                this.last_selected = "";
-
                 let input = vscode.window.createQuickPick<vscode.QuickPickItem>();
 
                 input.title = "Scrap History";
@@ -231,10 +225,6 @@ export class Scrap_manager
 
                     input.onDidChangeValue( async ( e: string ) =>
                     {
-                        /**
-                         * TODO: This is to disable the filter since it is superfluous for this application.
-                         * Wish the API supported disable filtering and disable sorting...
-                         */
                         input.value = "";
                         if( items )
                         {

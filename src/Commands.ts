@@ -1086,6 +1086,7 @@ export class Commands
         {
             let position = editor.selection.active;
             this.bookmarks_manager.drop_bookmark( editor.document.uri, index, position );
+            this.status_bar.set_temporary_message( `Dropped Bookmark ${index}` );
         }
     };
 
@@ -1096,7 +1097,7 @@ export class Commands
             {
                 if( error === "empty" )
                 {
-                    this.status_bar.set_temporary_message_fix( "No Bookmarks Dropped" );
+                    this.status_bar.set_temporary_message_fix( "No Dropped Bookmarks" );
                     return;
                 }
 
@@ -1109,6 +1110,18 @@ export class Commands
                 if( error === "file" )
                 {
                     this.status_bar.set_temporary_message_fix( "Bookmark Not Dropped" );
+                    return;
+                }
+
+                if( error === "location" )
+                {
+                    this.status_bar.set_temporary_message_fix( "Bookmark Show Failed" );
+                    return;
+                }
+
+                if( error === "gear" )
+                {
+                    this.bookmarks_manager.open_bookmarks_manage_dialog().catch( () => {} );
                     return;
                 }
             } ).
@@ -1125,7 +1138,7 @@ export class Commands
             {
                 if( error === "empty" )
                 {
-                    this.status_bar.set_temporary_message_fix( "No Bookmarks Dropped" );
+                    this.status_bar.set_temporary_message_fix( "No Dropped Bookmarks" );
                     return;
                 }
 
@@ -1141,9 +1154,9 @@ export class Commands
                     return;
                 }
 
-                if( error === "file" )
+                if( error === "location" )
                 {
-                    this.status_bar.set_temporary_message_fix( "Bookmark File Open Failed" );
+                    this.status_bar.set_temporary_message_fix( "Bookmark Show Failed" );
                     return;
                 }
             } ).

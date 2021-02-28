@@ -6,8 +6,8 @@ import { Local_storage } from './Local_storage';
 
 export class Bookmarks_manager
 {
-    public readonly MIN_BOOKMARK_NUMBER: number = 1;
-    public readonly MAX_BOOKMARK_NUMBER: number = 10;
+    public readonly MIN_BOOKMARK_NUMBER: number = 0;
+    public readonly MAX_BOOKMARK_NUMBER: number = 9;
 
     private bookmarks: Array<Bookmark_item>;
 
@@ -75,6 +75,26 @@ export class Bookmarks_manager
     public deserialize_bookmarks = ( bookmarks: string ): void =>
     {
         this.bookmarks = JSON.parse( Buffer.from( bookmarks, "base64" ).toString( "utf8" ) );
+    };
+
+    private find_index = ( bookmark_number: number ): number =>
+    {
+        return this.bookmarks.findIndex( ( value: Bookmark_item ) =>
+        {
+            return value.bookmark_number === bookmark_number;
+        } );
+    };
+
+    private remove = ( bookmark_number: number ): Bookmark_item | null =>
+    {
+        let index = this.find_index( bookmark_number );
+        if( index >= 0 )
+        {
+            let removed: Bookmark_item = this.bookmarks.splice( index, 1 )[0];
+            return removed;
+        }
+
+        return null;
     };
 
     public on_did_rename_files = ( e: vscode.FileRenameEvent ): any =>
@@ -156,8 +176,6 @@ export class Bookmarks_manager
 
     public drop_bookmark = ( uri: vscode.Uri, bookmark_number: string, position: vscode.Position ): void =>
     {
-        console.log( `uri: ${uri} index: ${bookmark_number} line: ${position.line} char: ${position.character}` );
-
         let uri_as_string = uri.toString();
         if( uri_as_string )
         {
@@ -169,15 +187,13 @@ export class Bookmarks_manager
         {
             throw new URIError( "Invalid URI for bookmark" );
         }
-
-        this.print_bookmarks();
     };
 
     public jump_bookmark = async (): Promise<void> =>
     {
         return await new Promise( ( resolve, reject ) =>
         {
-            this.get_bookmark_number_dialog().then( async ( item: Bookmark_item ) =>
+            this.show_bookmark_number_dialog().then( async ( item: Bookmark_item ) =>
                 {
                     if( item )
                     {
@@ -188,7 +204,6 @@ export class Bookmarks_manager
                             {
                                 let position = new vscode.Position( item.line, item.character );
                                 utility.move_cursor( value, position );
-
                                 resolve();
                             },
                             ( reason: any ): void =>
@@ -213,7 +228,7 @@ export class Bookmarks_manager
     {
         return await new Promise( ( resolve, reject ) =>
         {
-            this.show_bookmarks_dialog().then( async ( item: Bookmark_item ) =>
+            this.show_bookmark_list_dialog().then( async ( item: Bookmark_item ) =>
             {
                 if( item )
                 {
@@ -254,14 +269,16 @@ export class Bookmarks_manager
             for( let i = 0; i < this.bookmarks.length; i++ )
             {
                 let bookmark = this.bookmarks[i];
-                items?.push( { label: `${bookmark.bookmark_number}: `, description: `${bookmark.file_URI} <${bookmark.line}:${bookmark.character}>` } );
+                let bookmark_number = bookmark.bookmark_number;
+                if( bookmark_number === 0 ) { bookmark_number = 10; }
+                items?.unshift( { label: `${bookmark_number}: `, description: `${bookmark.file_URI} <${bookmark.line}:${bookmark.character}>` } );
             }
         }
 
         return items;
     };
 
-    public show_bookmarks_dialog = async (): Promise<Bookmark_item> =>
+    public show_bookmark_list_dialog = async (): Promise<Bookmark_item> =>
     {
         const disposables: vscode.Disposable[] = [];
         try
@@ -271,11 +288,12 @@ export class Bookmarks_manager
                 let input = vscode.window.createQuickPick<vscode.QuickPickItem>();
 
                 input.title = "Dropped Bookmarks";
-                input.placeholder = "Scroll to bookmark then <enter> to jump, or click on bookmark to jump...";
+                input.placeholder = "Scroll to bookmark then <enter> to jump, or click on bookmark to jump, or click manage bookmarks...";
 
-                let delete_all: vscode.QuickInputButton = { iconPath: new vscode.ThemeIcon( 'clear-all' ), tooltip: "Delete all items" };
+                let gear: vscode.QuickInputButton = { iconPath: new vscode.ThemeIcon( 'gear' ), tooltip: "Manage bookmarks" };
+                let delete_all: vscode.QuickInputButton = { iconPath: new vscode.ThemeIcon( 'clear-all' ), tooltip: "Delete all bookmarks" };
                 let cancel: vscode.QuickInputButton = { iconPath: new vscode.ThemeIcon( 'close' ), tooltip: "Cancel" };
-                input.buttons = [delete_all, cancel];
+                input.buttons = [gear, delete_all, cancel];
 
                 let items: vscode.QuickPickItem[] | null = this.get_quick_pick_items();
                 if( !items )
@@ -290,13 +308,66 @@ export class Bookmarks_manager
                     input.activeItems = [items[0]];
                 }
 
+                disposables.push(
+                    input.onDidTriggerButton( async ( e: vscode.QuickInputButton ) =>
+                    {
+                        let id = ( <vscode.ThemeIcon>( e.iconPath ) ).id;
+                        if( id === "gear" )
+                        {
+                            reject( "gear" );
+                            input.hide();
+                        }
+                        else if( id === "clear-all" )
+                        {
+                            this.remove_all();
+                            this.store_bookmarks();
+                            reject( "empty" );
+                            input.hide();
+                        }
+                        else if( id === "close" )
+                        {
+                            reject( "close" );
+                            input.hide();
+                        }
+                        else
+                        {
+                            reject( ( <vscode.ThemeIcon>( e.iconPath ) ).id );
+                            input.hide();
+                        }
+                    } ),
 
+                    input.onDidHide( async () =>
+                    {
+                        reject( "hide" );
+                        input.dispose();
+                        this.current = null;
+                    } ),
 
+                    input.onDidChangeSelection( async ( e: vscode.QuickPickItem[] ) =>
+                    {
+                        if( e.length > 0 )
+                        {
+                            let index = parseInt( e[0].label );
+                            if( index === 10 ) { index = 0; }
+                            let item = this.get_bookmark( index );
+                            if( item )
+                            {
+                                resolve( item );
+                                input.hide();
+                            }
+                        }
+                    } ),
 
-
-
-
-
+                    input.onDidChangeValue( async ( e: string ) =>
+                    {
+                        input.value = "";
+                        if( items )
+                        {
+                            input.items = items;
+                            input.activeItems = [items[0]];
+                        }
+                    } )
+                );
 
                 if( this.current )
                 {
@@ -314,7 +385,7 @@ export class Bookmarks_manager
         }
     };
 
-    public get_bookmark_number_dialog = async (): Promise<Bookmark_item> =>
+    public show_bookmark_number_dialog = async (): Promise<Bookmark_item> =>
     {
         const disposables: vscode.Disposable[] = [];
         try
@@ -324,6 +395,7 @@ export class Bookmarks_manager
                 let input = vscode.window.createInputBox();
 
                 input.title = "Jump to Bookmark";
+                input.placeholder = "Push [1-10] key to jump to bookmark (0 key for bookmark 10)...";
 
                 let delete_all: vscode.QuickInputButton = { iconPath: new vscode.ThemeIcon( 'clear-all' ), tooltip: "Delete all bookmarks" };
                 let cancel: vscode.QuickInputButton = { iconPath: new vscode.ThemeIcon( 'close' ), tooltip: "Cancel" };
@@ -410,6 +482,107 @@ export class Bookmarks_manager
                         {
                             input.value = "";
                             return;
+                        }
+                    } )
+                );
+
+                if( this.current )
+                {
+                    this.current.dispose();
+                }
+
+                this.current = input;
+
+                input.show();
+            } );
+        }
+        finally
+        {
+            disposables.forEach( d => d.dispose() );
+        }
+    };
+
+    public open_bookmarks_manage_dialog = async (): Promise<void> =>
+    {
+        const disposables: vscode.Disposable[] = [];
+        try
+        {
+            return await new Promise( ( resolve, reject ) =>
+            {
+                let input = vscode.window.createQuickPick<vscode.QuickPickItem>();
+
+                input.title = "Manage Dropped Bookmarks";
+                input.placeholder = "Select dropped bookmarks to delete, then <enter> or \"OK\"";
+                input.canSelectMany = true;
+
+                let delete_all: vscode.QuickInputButton = { iconPath: new vscode.ThemeIcon( 'clear-all' ), tooltip: "Delete all bookmarks" };
+                let cancel: vscode.QuickInputButton = { iconPath: new vscode.ThemeIcon( 'close' ), tooltip: "Cancel" };
+                input.buttons = [delete_all, cancel];
+
+                let items: vscode.QuickPickItem[] | null = this.get_quick_pick_items();
+                if( !items )
+                {
+                    reject( "empty" );
+                    input.dispose();
+                    this.current = null;
+                }
+                else
+                {
+                    input.items = items;
+                    input.activeItems = [items[0]];
+                }
+
+                disposables.push(
+                    input.onDidTriggerButton( async ( e: vscode.QuickInputButton ) =>
+                    {
+                        let id = ( <vscode.ThemeIcon>( e.iconPath ) ).id;
+                        if( id === "clear-all" )
+                        {
+                            this.remove_all();
+                            this.store_bookmarks();
+                            reject( "empty" );
+                            input.hide();
+                        }
+                        else if( id === "close" )
+                        {
+                            reject( "close" );
+                            input.hide();
+                        }
+                        else
+                        {
+                            reject( ( <vscode.ThemeIcon>( e.iconPath ) ).id );
+                            input.hide();
+                        }
+                    } ),
+
+                    input.onDidHide( async () =>
+                    {
+                        reject( "hide" );
+                        input.dispose();
+                        this.current = null;
+                    } ),
+
+                    input.onDidAccept( async ( e: void ) =>
+                    {
+                        let bookmarks_to_delete = input.selectedItems;
+                        for( let i = 0; i < bookmarks_to_delete.length; i++ )
+                        {
+                            let bookmark_item = bookmarks_to_delete[i];
+                            let bookmark_number = parseInt( bookmark_item.label );
+                            if( bookmark_number === 10 ) { bookmark_number = 0 };
+                            this.remove( bookmark_number );
+                        }
+
+                        input.hide();
+                    } ),
+
+                    input.onDidChangeValue( async ( e: string ) =>
+                    {
+                        input.value = "";
+                        if( items )
+                        {
+                            input.items = items;
+                            input.activeItems = [items[0]];
                         }
                     } )
                 );
