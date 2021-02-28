@@ -87,7 +87,10 @@ export class Commands
             vscode.commands.registerCommand( "brief4vscode.line_to_top_of_window", this.line_to_top_of_window ),
             vscode.commands.registerCommand( "brief4vscode.center_line_in_window", this.center_line_in_window ),
             vscode.commands.registerCommand( "brief4vscode.line_to_bottom_of_window", this.line_to_bottom_of_window ),
-            vscode.commands.registerCommand( "brief4vscode.drop_bookmark", this.drop_bookmark )
+            vscode.commands.registerCommand( "brief4vscode.comment_line", this.comment_line ),
+            vscode.commands.registerCommand( "brief4vscode.drop_bookmark", this.drop_bookmark ),
+            vscode.commands.registerCommand( "brief4vscode.open_bookmarks_dialog", this.open_bookmarks_dialog ),
+            vscode.commands.registerCommand( "brief4vscode.jump_bookmark", this.jump_bookmark )
             );
 
         context.subscriptions.push(
@@ -836,26 +839,22 @@ export class Commands
 
     public delete = ( args: any[] | null ): void =>
     {
-        vscode.commands.executeCommand( "deleteRight", args ).
-        then( () => { this.stop_all_marking_modes(); } );
+        vscode.commands.executeCommand( "deleteRight", args ).then( () => { this.stop_all_marking_modes(); } );
     };
 
     public backspace = ( args: any[] | null ): void =>
     {
-        vscode.commands.executeCommand( "deleteLeft", args ).
-        then( () => { this.stop_all_marking_modes(); } );
+        vscode.commands.executeCommand( "deleteLeft", args ).then( () => { this.stop_all_marking_modes(); } );
     };
 
     public tab = ( args: any[] | null ): void =>
     {
-        vscode.commands.executeCommand( "tab", args ).
-        then( () => { this.stop_all_marking_modes(); } );
+        vscode.commands.executeCommand( "tab", args ).then( () => { this.stop_all_marking_modes(); } );
     };
 
     public outdent = ( args: any[] | null ): void =>
     {
-        vscode.commands.executeCommand( "outdent", args ).
-        then( () => { this.stop_all_marking_modes(); } );
+        vscode.commands.executeCommand( "outdent", args ).then( () => { this.stop_all_marking_modes(); } );
     };
 
     private copy_to_history = (): vscode.Position | null =>
@@ -907,15 +906,14 @@ export class Commands
             {
                 let selection = editor.selection;
                 editor.edit( ( editBuilder: vscode.TextEditorEdit ) =>
-                    {
-                        editBuilder.delete( selection );
-                    } ).
-                    then( () =>
-                    {
-                        this.stop_all_marking_modes();
-                        utility.reveal_current_cursor_position();
-                        resolve();
-                    } );
+                {
+                    editBuilder.delete( selection );
+                } ).then( () =>
+                {
+                    this.stop_all_marking_modes();
+                    utility.reveal_current_cursor_position();
+                    resolve();
+                } );
             }
         } );
     };
@@ -931,8 +929,7 @@ export class Commands
 
         if( !this.configuration?.paste_lines_at_home || is_selection )
         {
-            vscode.commands.executeCommand( "editor.action.clipboardPasteAction", args ).
-            then( () =>
+            vscode.commands.executeCommand( "editor.action.clipboardPasteAction", args ).then( () =>
             {
                 this.scrap_manager.add_from_system_clipboard( true );
                 this.stop_all_marking_modes();
@@ -950,12 +947,11 @@ export class Commands
                         let editor = vscode.window.activeTextEditor;
                         if( editor )
                         {
-                            utility.move_cursor( new vscode.Position( editor.selection.active.line, 0 ) );
+                            utility.move_cursor( editor, new vscode.Position( editor.selection.active.line, 0 ) );
                         }
                     }
 
-                    vscode.commands.executeCommand( "editor.action.clipboardPasteAction", args ).
-                    then( () =>
+                    vscode.commands.executeCommand( "editor.action.clipboardPasteAction", args ).then( () =>
                     {
                         this.scrap_manager.add_from_system_clipboard( true );
                         this.stop_all_marking_modes();
@@ -983,11 +979,10 @@ export class Commands
 
     public save_and_exit = ( args: any[] | null ): void =>
     {
-        vscode.commands.executeCommand( "workbench.action.files.saveAll", args ).
-            then( () =>
-            {
-                vscode.commands.executeCommand( "workbench.action.quit", args );
-            } );
+        vscode.commands.executeCommand( "workbench.action.files.saveAll", args ).then( () =>
+        {
+            vscode.commands.executeCommand( "workbench.action.quit", args );
+        } );
     };
 
     public swap = ( args: any[] | null ): void =>
@@ -1031,7 +1026,7 @@ export class Commands
         let editor = vscode.window.activeTextEditor;
         if( editor )
         {
-            utility.move_cursor( new vscode.Position( editor.visibleRanges[0].start.line, editor.selection.active.character ) );
+            utility.move_cursor( editor, new vscode.Position( editor.visibleRanges[0].start.line, editor.selection.active.character ) );
         }
     };
 
@@ -1040,7 +1035,7 @@ export class Commands
         let editor = vscode.window.activeTextEditor;
         if( editor )
         {
-            utility.move_cursor( new vscode.Position( editor.visibleRanges[0].end.line, editor.selection.active.character ) );
+            utility.move_cursor( editor, new vscode.Position( editor.visibleRanges[0].end.line, editor.selection.active.character ) );
         }
     };
 
@@ -1076,6 +1071,14 @@ export class Commands
         }
     };
 
+    public comment_line = ( args: any[] | null ): void =>
+    {
+        vscode.commands.executeCommand( "editor.action.commentLine", args ).then( () =>
+            {
+                this.stop_all_marking_modes();
+            } );
+    };
+
     public drop_bookmark = ( index: string | null ): void =>
     {
         let editor = vscode.window.activeTextEditor;
@@ -1084,5 +1087,69 @@ export class Commands
             let position = editor.selection.active;
             this.bookmarks_manager.drop_bookmark( editor.document.uri, index, position );
         }
+    };
+
+    public open_bookmarks_dialog = ( args: any[] | null ): void =>
+    {
+        this.bookmarks_manager.open_bookmarks_dialog().
+            catch( ( error: string ) =>
+            {
+                if( error === "empty" )
+                {
+                    this.status_bar.set_temporary_message_fix( "No Bookmarks Dropped" );
+                    return;
+                }
+
+                if( error === "invalid" )
+                {
+                    this.status_bar.set_temporary_message_fix( "Bookmark Not Dropped" );
+                    return;
+                }
+
+                if( error === "file" )
+                {
+                    this.status_bar.set_temporary_message_fix( "Bookmark Not Dropped" );
+                    return;
+                }
+            } ).
+            finally( () =>
+            {
+                this.stop_all_marking_modes();
+            } );
+    };
+
+    public jump_bookmark = ( args: any[] | null ): void =>
+    {
+        this.bookmarks_manager.jump_bookmark().
+            catch( ( error: string ) =>
+            {
+                if( error === "empty" )
+                {
+                    this.status_bar.set_temporary_message_fix( "No Bookmarks Dropped" );
+                    return;
+                }
+
+                if( error === "invalid" )
+                {
+                    this.status_bar.set_temporary_message_fix( "Bookmark Not Dropped" );
+                    return;
+                }
+
+                if( error === "file" )
+                {
+                    this.status_bar.set_temporary_message_fix( "Bookmark File Open Failed" );
+                    return;
+                }
+
+                if( error === "file" )
+                {
+                    this.status_bar.set_temporary_message_fix( "Bookmark File Open Failed" );
+                    return;
+                }
+            } ).
+            finally( () =>
+            {
+                this.stop_all_marking_modes();
+            } );
     };
 }

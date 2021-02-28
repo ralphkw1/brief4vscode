@@ -1,6 +1,7 @@
 
 import * as vscode from 'vscode';
 
+import * as utility from './utility';
 import { Local_storage } from './Local_storage';
 
 export class Scrap_manager
@@ -103,11 +104,24 @@ export class Scrap_manager
                     let editor = vscode.window.activeTextEditor;
                     if( editor )
                     {
-                        editBuilder.delete( editor.selection );
-                        editBuilder.insert( editor.selection.active, item );
+                        let is_selection = !editor.selection.isEmpty;
+                        if( is_selection )
+                        {
+                            editBuilder.delete( editor.selection );
+                            editBuilder.insert( editor.selection.active, item );
+                        }
+                        else
+                        {
+                            const os = require( 'os' );
+                            if( item.endsWith( os.EOL ) )
+                            {
+                                utility.move_cursor( editor, new vscode.Position( editor.selection.active.line, 0 ) );
+                            }
+
+                            editBuilder.insert( editor.selection.active, item );
+                        }
                     }
-                } ).
-                then( () =>
+                } ).then( () =>
                 {
                     this.push_to_system_clipboard( item );
                     this.scrap_buffer.add_exclusive( item );
@@ -124,8 +138,7 @@ export class Scrap_manager
     {
         return await new Promise( ( resolve, reject ) =>
         {
-            this.show_scrap_dialog().
-            then( async ( item: string ) =>
+            this.show_scrap_dialog().then( async ( item: string ) =>
             {
                 await this.paste( item );
                 resolve();
@@ -287,7 +300,7 @@ class Scrap_buffer
             items = new Array<vscode.QuickPickItem>();
             this.item_list.forEach( ( value: string, i: number ) =>
             {
-                items?.push( { label: `0${i + 1}: `, description: `"${value}"` } );
+                items?.push( { label: `${i + 1}: `, description: `"${value}"` } );
             } );
         }
 

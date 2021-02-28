@@ -39,13 +39,9 @@ export let get_number_of_selected_lines = ( editor: vscode.TextEditor | null ): 
     return -1;
 };
 
-export let move_cursor = ( position: vscode.Position ): void =>
+export let move_cursor = ( editor: vscode.TextEditor, position: vscode.Position ): void =>
 {
-    let editor = vscode.window.activeTextEditor;
-    if( editor )
-    {
         let validated_postion = editor.document.validatePosition( position );
         editor.selection = new vscode.Selection( validated_postion, validated_postion );
         editor.revealRange( new vscode.Range( validated_postion, validated_postion ) );
-    }
 };

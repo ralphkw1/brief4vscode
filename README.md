@@ -1,11 +1,16 @@
 <div style="background-color:#F5FFFF">
 <h2 style="color:#0000AA">Brief Text Editor Emulation for Visual Studio Code</h2>
-<p>This plug-in adds key bindings and functionality that attempts to emulate many features of the original BRIEF MS-DOS application. BRIEF (Basic Re-configurable Interactive Editing Facility) was a popular programmer's text editor in the late 1980s and early 1990s. Developed by UnderWare Inc, it was quite powerful and feature rich for its time. See the Wikipedia page &quot;<a href="https://en.wikipedia.org/wiki/Brief_(text_editor)" target="_blank">Brief (text editor)</a>&quot;.</p>
+<p>This plug-in adds key bindings and functionality that attempts to emulate many features of the original BRIEF MS-DOS application.</p>
+<p>Some history. BRIEF (Basic Re-configurable Interactive Editing Facility) was a popular programmer's text editor in the late 1980s and early 1990s. Developed by UnderWare Inc, it was quite powerful and feature rich for its time. For more information, see the Wikipedia page &quot;<a href="https://en.wikipedia.org/wiki/Brief_(text_editor)" target="_blank">Brief (text editor)</a>&quot;.</p>
+<p>I created this project as an exercise for me to learn Visual Studio Code extension development; Just having fun. I don't think that there is a high demand for Brief emulation anywhere. Also, I have always really liked the Brief key assignments and feature set and I try and set it up in any editor I use. So if you are/were also into Brief, I hope you enjoy using this.</p>
 <h3 style="color:#0000AA">Installation</h3>
 <p>After you install the plug-in, it should just start working.</p>
 <h3 style="color:#0000AA">Commands</h3>
-<p>The following are the key bindings and commands implemented by the plugin. Some Brief functionality is currently the Visual Studio Code default, or close enough. No changes to mouse functionality.</p>
-<p>If you are looking for the full Brief command set, try the following link. &quot;<a href="https://christopoulos.users.sourceforge.net/cbrief/brief.php" target="_blank">About BRIEF Text Editor</a>&quot;. Otherwise, search for it with your favorite search engine.</p>
+<p>The following are the key bindings and commands implemented by the plugin.</p>
+<p> Some Brief functionality is currently the Visual Studio Code default, or close enough.</p>
+<p> No intentional changes to mouse functionality.</p>
+<p> None of the commands will work unless the cursor is in an active "TextDocument". This is done so the extension won't interfere with existing functionality.</p>
+<p>If you are looking for implementations of the full Brief command set, you may try the following link, as long as it still works. &quot;<a href="https://christopoulos.users.sourceforge.net/cbrief/brief.php" target="_blank">About BRIEF Text Editor</a>&quot;. Otherwise, search for it with your favorite search engine and see what you can find.</p>
 </div>
 <table style="background-color:#F5FFFF">
     <caption style="color:#0000AA; background-color:#F5FFFF">Help and Undo/Redo</caption>
@@ -61,6 +66,7 @@
     <tr><td>Alt + C</td><td>Column Mark toggle<sup>*</sup></td><td>Toggle column marking mode. Use cursor or single click mouse to move cursor and expand selection.</td></tr>
     <tr><td>Alt + <i>[1-10]</i></td><td>Drop bookmark</td><td>Inserts a numbered (1-10) bookmark into the editor and the current cursor posiotion. Bookmark 10 is dropped using the 0 key.</td></tr>
     <tr><td>Alt + J</td><td>Jump to bookmark</td><td>Waits for a bookmark number, <i>[1-10]</i> then jumps to that number. Bookmark 10 is the 0 key.</td></tr>
+    <tr><td>Alt + B</td><td>Bookmark List</td><td>Open bookmark list dialog. Scroll and select a bookmark to jump to. Can also delete bookmarks. This is a new command and the key assignment was taken from the "buffer list" command, which is not implemented.</td></tr>
 </table>
 <table style="background-color:#F5FFFF">
     <caption style="color:#0000AA; background-color:#F5FFFF">Scrap</caption>
