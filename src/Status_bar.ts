@@ -13,7 +13,7 @@ export class Status_bar
         this.overstrike_mode_message = null;
     }
 
-    public destroy = (): void =>
+    public dispose = (): void =>
     {
         this.clear_all();
     };

@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 
 import * as utility from './utility';
 import { Local_storage } from './Local_storage';
+import { Configuration } from "./extension";
 
 export class Scrap_manager
 {
@@ -12,6 +13,8 @@ export class Scrap_manager
 
     private storage: Local_storage;
 
+    private configuration: Configuration | null;
+
     public constructor( storage: Local_storage )
     {
         this.storage = storage;
@@ -19,6 +22,8 @@ export class Scrap_manager
         this.current = null;
 
         this.scrap_buffer = new Scrap_buffer();
+
+        this.configuration = null;
     }
 
     public initialize = (): void =>
@@ -26,13 +31,18 @@ export class Scrap_manager
         this.get_stored_scrap();
     };
 
-    public destroy = (): void =>
+    public dispose = (): void =>
     {
         this.store_scrap_items();
 
         this.current?.dispose();
 
-        this.scrap_buffer.destroy();
+        this.scrap_buffer.dispose();
+    };
+
+    public on_configuration_changed = ( configuration: Configuration ): void =>
+    {
+        this.configuration = configuration;
     };
 
     private get_item_count = (): number =>
@@ -105,7 +115,7 @@ export class Scrap_manager
                     if( editor )
                     {
                         let is_selection = !editor.selection.isEmpty;
-                        if( is_selection )
+                        if( !this.configuration?.paste_lines_at_home || is_selection )
                         {
                             editBuilder.delete( editor.selection );
                             editBuilder.insert( editor.selection.active, item );
@@ -262,7 +272,7 @@ class Scrap_buffer
         this.item_list = new Array<string>();
     }
 
-    public destroy = (): void =>
+    public dispose = (): void =>
     {
     };
 

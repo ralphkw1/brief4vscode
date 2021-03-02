@@ -12,6 +12,7 @@ export interface Configuration
 	default_cursor_style: vscode.TextEditorCursorStyle | undefined;
 	use_brief_home: boolean | undefined;
 	paste_lines_at_home: boolean | undefined;
+	use_relative_bookmarks: boolean | undefined;
 };
 
 let local_storage: Local_storage | null;
@@ -23,7 +24,7 @@ let bookmarks_manager: Bookmarks_manager | null = null;
 export function activate( context: vscode.ExtensionContext )
 {
 	context.subscriptions.push( vscode.workspace.onDidChangeConfiguration(
-		( e: vscode.ConfigurationChangeEvent ) => { configuration_changed( e, context ); },
+		( e: vscode.ConfigurationChangeEvent ) => { configuration_changed( e ); },
 		null, context.subscriptions ) );
 
 	vscode.commands.executeCommand( "setContext", "brief4vscode_enabled", true );
@@ -32,6 +33,11 @@ export function activate( context: vscode.ExtensionContext )
 	status_bar = new Status_bar();
 	scrap_manager = new Scrap_manager( local_storage );
 	bookmarks_manager = new Bookmarks_manager( local_storage );
+
+	let configuration = get_configuration();
+	commands?.on_configuration_changed( configuration );
+	scrap_manager?.on_configuration_changed( configuration );
+	bookmarks_manager?.on_configuration_changed( configuration );
 
 	scrap_manager.initialize();
 	bookmarks_manager.initialize();
@@ -43,18 +49,19 @@ export function activate( context: vscode.ExtensionContext )
 
 	commands.set_overstrike_mode( false );
 
+	context.subscriptions.push(
+		commands,
+		bookmarks_manager,
+		scrap_manager,
+		status_bar,
+		local_storage );
+
 	console.log( 'Extension "brief4vscode" is now active!' );
 }
 
-export function deactivate()
-{
-	commands?.destroy();
-	status_bar?.destroy();
-	scrap_manager?.destroy();
-	bookmarks_manager?.destroy();
-}
+export function deactivate() {}
 
-export function get_configuration(): Configuration
+function get_configuration(): Configuration
 {
 	let editor_configuration = vscode.workspace.getConfiguration( "editor" );
 	let brief4vscode_configuration = vscode.workspace.getConfiguration( "brief4vscode" );
@@ -71,16 +78,24 @@ export function get_configuration(): Configuration
 	return {
 		default_cursor_style: cursor_style,
 		use_brief_home: brief4vscode_configuration.get<boolean>( "use_brief_home" ),
-		paste_lines_at_home: brief4vscode_configuration.get<boolean>( "paste_lines_at_home" )
+		paste_lines_at_home: brief4vscode_configuration.get<boolean>( "paste_lines_at_home" ),
+		use_relative_bookmarks: brief4vscode_configuration.get<boolean>( "use_relative_bookmarks" )
 	};
 }
 
-function configuration_changed( e: vscode.ConfigurationChangeEvent, context: vscode.ExtensionContext ): any
+function configuration_changed( e: vscode.ConfigurationChangeEvent ): any
 {
-	let affected = e.affectsConfiguration( "brief4vscode.use_brief_home" ) ||
-		e.affectsConfiguration( "brief4vscode.paste_lines_at_home" );
-	if( affected )
+	let configuration = get_configuration();
+
+	if( e.affectsConfiguration( "brief4vscode.use_brief_home" ) ||
+		e.affectsConfiguration( "brief4vscode.paste_lines_at_home" ) )
 	{
-		commands?.on_configuration_changed( context, get_configuration() );
+		commands?.on_configuration_changed( configuration );
+		scrap_manager?.on_configuration_changed( configuration );
+	}
+
+	if( e.affectsConfiguration( "brief4vscode.use_relative_bookmarks" ) )
+	{
+		bookmarks_manager?.on_configuration_changed( configuration );
 	}
 }

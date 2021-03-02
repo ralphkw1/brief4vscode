@@ -3,6 +3,12 @@ import * as vscode from 'vscode';
 
 import * as utility from './utility';
 import { Local_storage } from './Local_storage';
+import { Configuration } from "./extension";
+
+interface Get_bookmark_from_user
+{
+    (): Promise<Bookmark_item>;
+}
 
 export class Bookmarks_manager
 {
@@ -15,7 +21,7 @@ export class Bookmarks_manager
 
     private storage: Local_storage;
 
-    private pending_bookmark: number;
+    private configuration: Configuration | null;
 
     public constructor( storage: Local_storage )
     {
@@ -25,7 +31,7 @@ export class Bookmarks_manager
 
         this.bookmarks = new Array<Bookmark_item>();
 
-        this.pending_bookmark = -1;
+        this.configuration = null;
     }
 
     public initialize = (): void =>
@@ -33,7 +39,7 @@ export class Bookmarks_manager
         this.get_stored_bookmarks();
     };
 
-    public destroy = (): void =>
+    public dispose = (): void =>
     {
         this.store_bookmarks();
 
@@ -42,9 +48,25 @@ export class Bookmarks_manager
         this.bookmarks.forEach( ( value: Bookmark_item ) => { value.destroy(); } );
     };
 
+    public on_configuration_changed = ( configuration: Configuration ): void =>
+    {
+        this.configuration = configuration;
+    };
+
     private get_stored_bookmarks = (): void =>
     {
-        let bookmarks_as_string = this.storage.get_global_value( "bookmarks_buffer" );
+        let bookmarks_as_string: string;
+        let workspace_folders = vscode.workspace.workspaceFolders;
+        if( workspace_folders && ( workspace_folders.length > 0 ) && workspace_folders[0] &&
+            this.configuration?.use_relative_bookmarks )
+        {
+            bookmarks_as_string = this.storage.get_workspace_value( "bookmarks_buffer" );
+        }
+        else
+        {
+            bookmarks_as_string = this.storage.get_global_value( "bookmarks_buffer" );
+        }
+
         if( bookmarks_as_string )
         {
             this.deserialize_bookmarks( bookmarks_as_string );
@@ -53,13 +75,31 @@ export class Bookmarks_manager
 
     private store_bookmarks = (): Thenable<void> =>
     {
+        let workspace_folders = vscode.workspace.workspaceFolders;
+
         let bookmarks_as_string = this.serialize_bookmarks();
         if( bookmarks_as_string )
         {
-            return this.storage.set_global_value( "bookmarks_buffer", bookmarks_as_string );
+            if( workspace_folders && ( workspace_folders.length > 0 ) && workspace_folders[0] &&
+                this.configuration?.use_relative_bookmarks )
+            {
+                return this.storage.set_workspace_value( "bookmarks_buffer", bookmarks_as_string );
+            }
+            else
+            {
+                return this.storage.set_global_value( "bookmarks_buffer", bookmarks_as_string );
+            }
         }
 
-        return this.storage.delete_global_value( "bookmarks_buffer" );
+        if( workspace_folders && ( workspace_folders.length > 0 ) && workspace_folders[0] &&
+            this.configuration?.use_relative_bookmarks )
+        {
+            return this.storage.delete_workspace_value( "bookmarks_buffer" );
+        }
+        else
+        {
+            return this.storage.delete_global_value( "bookmarks_buffer" );
+        }
     };
 
     public serialize_bookmarks = (): string | null =>
@@ -107,22 +147,41 @@ export class Bookmarks_manager
             vscode.workspace.fs.stat( new_URI ).then( ( value: vscode.FileStat ) =>
             {
                 let new_URI_is_directory = ( value.type === vscode.FileType.Directory );
+                let new_URI_is_file = ( value.type === vscode.FileType.File );
 
                 vscode.workspace.fs.stat( old_URI ).then( ( value: vscode.FileStat ) =>
                 {
                     let old_URI_is_directory = ( value.type === vscode.FileType.Directory );
+                    let old_URI_is_file = ( value.type === vscode.FileType.File );
 
                     console.log( `old: ${e.files[i].oldUri}, ${old_URI_is_directory} new: ${e.files[i].newUri}, ${new_URI_is_directory}` );
 
+                    for( let j = 0; j < this.bookmarks.length; j++ )
+                    {
+                        let bookmark = this.bookmarks[i];
+                        let bookmark_URI = vscode.Uri.parse( bookmark.path );
 
+                        if( new_URI_is_file && old_URI_is_file && ( bookmark_URI === old_URI ) )
+                        {
+                            console.log( `file name change for ${bookmark.bookmark_number}` );
+                            continue;
+                        }
 
-
-/// TODO:
-
-
+                        if( new_URI_is_directory && old_URI_is_directory &&
+                            ( bookmark_URI.toString().startsWith( old_URI.toString() ) ) )
+                        {
+                            console.log( `directory path change for ${bookmark.bookmark_number}` );
+                            continue;
+                        }
+                    }
                 } );
             } );
         }
+    };
+
+    public on_did_change_workspace_folders = ( e: vscode.WorkspaceFoldersChangeEvent ): any =>
+    {
+        console.log( `on_did_change_workspace_folders` );
     };
 
     private get_bookmark = ( bookmark_number: number ): Bookmark_item | null =>
@@ -143,7 +202,7 @@ export class Bookmarks_manager
         let bookmark_item = this.get_bookmark( bookmark_number );
         if( bookmark_item )
         {
-            bookmark_item.file_URI = path;
+            bookmark_item.path = path;
             bookmark_item.bookmark_number = bookmark_number;
             bookmark_item.line = line;
             bookmark_item.character = character;
@@ -168,19 +227,43 @@ export class Bookmarks_manager
         {
             no_bookmarks = false;
             let bookmark = this.bookmarks[i];
-            message = "\tBookmark " + bookmark.bookmark_number + " = [" + bookmark.file_URI + ", " + bookmark.line + ":" + bookmark.character + "]\n";
+            message = "\tBookmark " + bookmark.bookmark_number + " = [" + bookmark.path + ", " + bookmark.line + ":" + bookmark.character + "]\n";
         }
 
         console.log( `get_stored_bookmarks:\n ${( no_bookmarks ? "\tno stored bookmarks" : message )}` );
     };
 
-    public drop_bookmark = ( uri: vscode.Uri, bookmark_number: string, position: vscode.Position ): void =>
+    private convert_URI_absolute_to_relative = ( path: vscode.Uri ): string =>
     {
-        let uri_as_string = uri.toString();
-        if( uri_as_string )
+        let workspace_folder = vscode.workspace.getWorkspaceFolder( path );
+        let relative_path = vscode.workspace.asRelativePath( path, false );
+        if( workspace_folder && this.configuration?.use_relative_bookmarks )
+        {
+           return relative_path;
+        }
+
+        return path.toString();
+    };
+
+    private convert_URI_relative_to_absolute = ( path: string ): vscode.Uri =>
+    {
+        let workspace_folders = vscode.workspace.workspaceFolders;
+        if( workspace_folders && ( workspace_folders.length > 0 ) && workspace_folders[0] &&
+            !path.startsWith( "file:///" ) && this.configuration?.use_relative_bookmarks )
+        {
+            path = `${workspace_folders[0].uri.toString()}/${path}`;
+        }
+
+        return vscode.Uri.parse( path );
+    };
+
+    public drop_bookmark = ( path: vscode.Uri, bookmark_number: string, position: vscode.Position ): void =>
+    {
+        let file = this.convert_URI_absolute_to_relative( path );
+        if( file )
         {
             let bookmark = parseInt( bookmark_number );
-            this.store_bookmark( uri_as_string, bookmark, position.line, position.character );
+            this.store_bookmark( file, bookmark, position.line, position.character );
             this.store_bookmarks();
         }
         else
@@ -191,49 +274,91 @@ export class Bookmarks_manager
 
     public jump_bookmark = async (): Promise<void> =>
     {
-        return await new Promise( ( resolve, reject ) =>
-        {
-            this.show_bookmark_number_dialog().then( async ( item: Bookmark_item ) =>
-                {
-                    if( item )
-                    {
-                        let file_URI = vscode.Uri.parse( item.file_URI );
-                        vscode.workspace.openTextDocument( file_URI ).then( ( value: vscode.TextDocument ): void =>
-                        {
-                            vscode.window.showTextDocument( value ).then( ( value: vscode.TextEditor ) =>
-                            {
-                                let position = new vscode.Position( item.line, item.character );
-                                utility.move_cursor( value, position );
-                                resolve();
-                            },
-                            ( reason: any ): void =>
-                            {
-                                reject( "location" );
-                            } );
-                        },
-                        ( reason: any ): void =>
-                        {
-                            reject( "file" );
-                        } );
-                    }
-                } ).
-                catch( ( error: string ) =>
-                {
-                    reject( error );
-                } );
-        } );
+        return this.get_bookmark_and_jump( this.show_bookmark_number_dialog );
+
+        // return await new Promise( ( resolve, reject ) =>
+        // {
+        //     this.show_bookmark_number_dialog().then( async ( item: Bookmark_item ) =>
+        //         {
+        //             if( item )
+        //             {
+        //                 let path = this.convert_URI_relative_to_absolute( item.path );
+        //                 vscode.workspace.openTextDocument( path ).then( ( value: vscode.TextDocument ): void =>
+        //                 {
+        //                     vscode.window.showTextDocument( value ).then( ( value: vscode.TextEditor ) =>
+        //                     {
+        //                         let position = new vscode.Position( item.line, item.character );
+        //                         utility.move_cursor( value, position );
+        //                         resolve();
+        //                     },
+        //                     ( reason: any ): void =>
+        //                     {
+        //                         reject( "location" );
+        //                     } );
+        //                 },
+        //                 ( reason: any ): void =>
+        //                 {
+        //                     reject( "file" );
+        //                 } );
+        //             }
+        //         } ).
+        //         catch( ( error: string ) =>
+        //         {
+        //             reject( error );
+        //         } );
+        // } );
     };
 
     public open_bookmarks_dialog = async (): Promise<void> =>
     {
+        return this.get_bookmark_and_jump( this.show_bookmark_list_dialog );
+
+        // return await new Promise( ( resolve, reject ) =>
+        // {
+        //     this.show_bookmark_list_dialog().then( async ( item: Bookmark_item ) =>
+        //     {
+        //         if( item )
+        //         {
+        //             let path = this.convert_URI_relative_to_absolute( item.path );
+
+        //             console.log( path.toString() );
+
+        //             vscode.workspace.openTextDocument( path ).then( ( value: vscode.TextDocument ): void =>
+        //             {
+        //                 vscode.window.showTextDocument( value ).then( ( value: vscode.TextEditor ) =>
+        //                 {
+        //                     let position = new vscode.Position( item.line, item.character );
+        //                     utility.move_cursor( value, position );
+        //                     resolve();
+        //                 },
+        //                 ( reason: any ): void =>
+        //                 {
+        //                     reject( "location" );
+        //                 } );
+        //             },
+        //             ( reason: any ): void =>
+        //             {
+        //                 reject( "file" );
+        //             } );
+        //         }
+        //     } ).
+        //         catch( ( error: string ) =>
+        //         {
+        //             reject( error );
+        //         } );
+        // } );
+    };
+
+    public get_bookmark_and_jump = async ( method: Get_bookmark_from_user ): Promise<void> =>
+    {
         return await new Promise( ( resolve, reject ) =>
         {
-            this.show_bookmark_list_dialog().then( async ( item: Bookmark_item ) =>
+            method().then( async ( item: Bookmark_item ) =>
             {
                 if( item )
                 {
-                    let file_URI = vscode.Uri.parse( item.file_URI );
-                    vscode.workspace.openTextDocument( file_URI ).then( ( value: vscode.TextDocument ): void =>
+                    let path = this.convert_URI_relative_to_absolute( item.path );
+                    vscode.workspace.openTextDocument( path ).then( ( value: vscode.TextDocument ): void =>
                     {
                         vscode.window.showTextDocument( value ).then( ( value: vscode.TextEditor ) =>
                         {
@@ -271,7 +396,7 @@ export class Bookmarks_manager
                 let bookmark = this.bookmarks[i];
                 let bookmark_number = bookmark.bookmark_number;
                 if( bookmark_number === 0 ) { bookmark_number = 10; }
-                items?.unshift( { label: `${bookmark_number}: `, description: `${bookmark.file_URI} <${bookmark.line}:${bookmark.character}>` } );
+                items?.unshift( { label: `${bookmark_number}: `, description: `${bookmark.path} <${bookmark.line}:${bookmark.character}>` } );
             }
         }
 
@@ -606,14 +731,14 @@ export class Bookmarks_manager
 
 class Bookmark_item
 {
-    public file_URI: string;
+    public path: string;
     public bookmark_number: number;
     public line: number;
     public character: number;
 
     public constructor( path: string, bookmark_number: number, line: number, character: number )
     {
-        this.file_URI = path;
+        this.path = path;
         this.bookmark_number = bookmark_number;
         this.line = line;
         this.character = character;

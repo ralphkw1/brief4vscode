@@ -21,6 +21,10 @@ export class Local_storage
         this.log_uri = context.logUri;
     }
 
+    public dispose = (): void =>
+    {
+    };
+
     public get_global_value = ( key: string ): string =>
     {
         return this.global_storage.get<string>( key, "" );
@@ -34,5 +38,20 @@ export class Local_storage
     public delete_global_value = ( key: string ): Thenable<void> =>
     {
         return this.global_storage.update( key, undefined );
+    };
+
+    public get_workspace_value = ( key: string ): string =>
+    {
+        return this.workspace_storage.get<string>( key, "" );
+    };
+
+    public set_workspace_value = ( key: string, value: string ): Thenable<void> =>
+    {
+        return this.workspace_storage.update( key, value );
+    };
+
+    public delete_workspace_value = ( key: string ): Thenable<void> =>
+    {
+        return this.workspace_storage.update( key, undefined );
     };
 }

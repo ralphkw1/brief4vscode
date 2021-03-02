@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 
 import * as utility from './utility';
 import { Status_bar } from "./Status_bar";
-import { Configuration, get_configuration } from "./extension";
+import { Configuration } from "./extension";
 import { Scrap_manager } from './Scrap_manager';
 import { Bookmarks_manager } from './Bookmarks_manager';
 
@@ -97,14 +97,14 @@ export class Commands
             vscode.window.onDidChangeActiveTextEditor( this.on_did_change_active_text_editor ),
             vscode.window.onDidChangeWindowState( this.on_did_change_window_state ),
             vscode.window.onDidChangeTextEditorSelection( this.on_did_change_text_editor_selection ),
-            vscode.workspace.onDidRenameFiles( this.bookmarks_manager.on_did_rename_files )
+            vscode.workspace.onDidRenameFiles( this.bookmarks_manager.on_did_rename_files ),
+            vscode.workspace.onDidChangeWorkspaceFolders( this.bookmarks_manager.on_did_change_workspace_folders ),
             );
 
-        this.configuration = get_configuration();
-        this.on_configuration_changed( context, this.configuration );
+        this.configuration = null;
     }
 
-    public destroy = (): void =>
+    public dispose = (): void =>
     {
     };
 
@@ -124,7 +124,7 @@ export class Commands
         console.log( "Brief for VSCode disabled..." );
     };
 
-    public on_configuration_changed = ( context: vscode.ExtensionContext, configuration: Configuration ): void =>
+    public on_configuration_changed = ( configuration: Configuration ): void =>
     {
         this.configuration = configuration;
     };
@@ -1103,13 +1103,13 @@ export class Commands
 
                 if( error === "invalid" )
                 {
-                    this.status_bar.set_temporary_message_fix( "Bookmark Not Dropped" );
+                    this.status_bar.set_temporary_message_fix( "Bookmark Number Not Dropped" );
                     return;
                 }
 
                 if( error === "file" )
                 {
-                    this.status_bar.set_temporary_message_fix( "Bookmark Not Dropped" );
+                    this.status_bar.set_temporary_message_fix( "Bookmark File Open Failed" );
                     return;
                 }
 
@@ -1144,7 +1144,7 @@ export class Commands
 
                 if( error === "invalid" )
                 {
-                    this.status_bar.set_temporary_message_fix( "Bookmark Not Dropped" );
+                    this.status_bar.set_temporary_message_fix( "Bookmark Number Not Dropped" );
                     return;
                 }
 

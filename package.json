@@ -10,6 +10,7 @@
 	"publisher": "rkdawenterprises",
 	"version": "1.0.9",
 	"license": "Apache2",
+	"os": ["linux"],
 	"keywords": [
 		"brief"
 	],
@@ -52,6 +53,11 @@
 					"type": "boolean",
 					"default": true,
 					"description": "If the item in the scrap history buffer being pasted is a full line (ends with a line termination), then paste it at the beginning of the current line instead of at the current cursor location."
+				},
+				"brief4vscode.use_relative_bookmarks": {
+					"type": "boolean",
+					"default": true,
+					"description": "Bookmark URI are stored and displayed relative to project workspace folder. Set to false to store and display globally."
 				}
 			}
 		},
@@ -379,6 +385,11 @@
 			{
 				"key": "alt+j",
 				"command": "brief4vscode.jump_bookmark",
+				"when": "editorTextFocus && brief4vscode_enabled"
+			},
+			{
+				"key": "ctrl+shift+alt+h",
+				"command": "brief4vscode.dummy",
 				"when": "editorTextFocus && brief4vscode_enabled"
 			}
 		]
