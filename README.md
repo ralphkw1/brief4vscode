@@ -95,13 +95,16 @@
     <tr><td>Ctrl + R</td><td>Repeat</td><td>Opens the &quot;Repeat Dialog&quot;, then repeats the requested command, or inserts the requested char/string into the editor, the requested number of times. Not all commands are supported or work well. Actually accepts any &quot;non-printable&quot; key sequence, so not sure what works actually.</td></tr>
 </table>
 <div style="background-color:#F5FFFF">
-<h3 style="color:#0000AA">Notes</h3>
-<p><sup>*</sup> Can't properly implement "Column Marking Mode" until that mode is improved in Visual Studio Code API. You'll just have to struggle with using the existing column functionality.</p>
-<p>The extension may not currently work with line/code folding, at least not very well. So best to unfold the area of the file you are working on if you want the commands to work as expected.</p>
-<p>I can only account for Brief defined keystrokes in the marking modes. Turn off marking modes to use those. I couldn't find a way to generally monitor all keystrokes.
+<h3 style="color:#0000AA">Notes<sup>*</sup></h3>
+<ul>
+<li>Really can't properly implement Brief's "Column Marking Mode" until that mode is improved in Visual Studio Code API. You'll just have to struggle with using the existing column functionality.</li>
+<li>The extension may not currently work very well with line/code folding (not tested). So best to unfold the area of the file you are working on if you want the commands to work as expected.</li>
+<li>I can only account for Brief defined keystrokes in the marking modes. Turn off an active marking mode to use other commands. I couldn't find a way to generally monitor all keystrokes to disable an active marking mode.</li>
+</ul>
 </div>
 <div style="background-color:#F5FFFF">
-<h3 style="color:#0000AA">Contact</h3>
+<h3 style="color:#0000AA">Contact/Bugs</h3>
+<p>Enter bugs at &quot;<a href=https://github.com/ralphkw1/brief4vscode/issues target="_blank">Brief for VS Code Issues</a>&quot;.</p>
 <p>You can email me at <a href="mailto:&#109;&#97;&#105;&#108;&#116;&#111;&#58;rkdawenterprises&#64;gmail&#46;com&#46;no!spam?subject=Brief Editor Emulation for Visual Studio Code">rkdawenterprises&#64;gmail&#46;com&#46;no!spam</a>. I don't look at this very often so it may take a while to hear back.</p>
 <p>I started using Brief in the early 1990s when I was at Compaq Computer Corporation working on printers. I thought at the time that it was way beyond any editor I had used to date.</p>
 <p>I created this project as an exercise for me to learn Visual Studio Code extension development; Just having fun. I don't think that there is a high demand for Brief emulation anywhere. Also, I have always really liked the Brief key assignments and feature set and I try and set it up in any editor I use. So if you are/were also into Brief, I hope you enjoy using this.</p>
