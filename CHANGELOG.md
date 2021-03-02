@@ -2,6 +2,6 @@
 
 All notable changes to the "brief4vscode" extension will be documented in this file.
 
-## [v1.0.1] (2021-02-17)
+## [v1.0.10] (2021-03-03)
 
-- Initial release. A work-in-progress; Not all commands implemented yet. Still testing.
+- Initial release.

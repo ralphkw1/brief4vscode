@@ -90,23 +90,18 @@ export class Commands
             vscode.commands.registerCommand( "brief4vscode.comment_line", this.comment_line ),
             vscode.commands.registerCommand( "brief4vscode.drop_bookmark", this.drop_bookmark ),
             vscode.commands.registerCommand( "brief4vscode.open_bookmarks_dialog", this.open_bookmarks_dialog ),
-            vscode.commands.registerCommand( "brief4vscode.jump_bookmark", this.jump_bookmark )
-            );
+            vscode.commands.registerCommand( "brief4vscode.jump_bookmark", this.jump_bookmark ) );
 
         context.subscriptions.push(
             vscode.window.onDidChangeActiveTextEditor( this.on_did_change_active_text_editor ),
             vscode.window.onDidChangeWindowState( this.on_did_change_window_state ),
             vscode.window.onDidChangeTextEditorSelection( this.on_did_change_text_editor_selection ),
-            vscode.workspace.onDidRenameFiles( this.bookmarks_manager.on_did_rename_files ),
-            vscode.workspace.onDidChangeWorkspaceFolders( this.bookmarks_manager.on_did_change_workspace_folders ),
-            );
+            vscode.workspace.onDidRenameFiles( this.bookmarks_manager.on_did_rename_files ) );
 
         this.configuration = null;
     }
 
-    public dispose = (): void =>
-    {
-    };
+    public dispose = (): void => {};
 
     public enable_brief4vscode = ( args: any[] ): void =>
     {

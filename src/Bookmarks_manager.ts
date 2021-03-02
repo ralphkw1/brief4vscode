@@ -7,7 +7,7 @@ import { Configuration } from "./extension";
 
 interface Get_bookmark_from_user
 {
-    (): Promise<Bookmark_item>;
+    ( title_append: string | undefined ): Promise<Bookmark_item>;
 }
 
 export class Bookmarks_manager
@@ -23,6 +23,8 @@ export class Bookmarks_manager
 
     private configuration: Configuration | null;
 
+    private current_workspace: vscode.WorkspaceFolder | null;
+
     public constructor( storage: Local_storage )
     {
         this.storage = storage;
@@ -32,39 +34,87 @@ export class Bookmarks_manager
         this.bookmarks = new Array<Bookmark_item>();
 
         this.configuration = null;
+
+        this.current_workspace = null;
     }
 
     public initialize = (): void =>
     {
+        this.has_workspace_changed();
+
         this.get_stored_bookmarks();
     };
 
     public dispose = (): void =>
     {
-        this.store_bookmarks();
+        this.has_workspace_changed();
 
         this.current?.dispose();
 
-        this.bookmarks.forEach( ( value: Bookmark_item ) => { value.destroy(); } );
+        this.store_bookmarks().then( () =>
+        {
+            this.bookmarks.forEach( ( value: Bookmark_item ) => { value.dispose(); } );
+        } );
     };
 
     public on_configuration_changed = ( configuration: Configuration ): void =>
     {
         this.configuration = configuration;
+
+        if( this.has_workspace_changed() )
+        {
+            this.get_stored_bookmarks();
+        }
+
+        this.bookmarks.forEach( ( value: Bookmark_item, index: number ) =>
+        {
+            let current_is_relative = this.is_relative();
+            if( value.is_relative_not_global !== current_is_relative )
+            {
+                this.bookmarks.splice( index, 1 );
+            }
+        } );
     };
 
-    private get_stored_bookmarks = (): void =>
+    private is_relative = (): boolean =>
+    {
+        let workspace_folders = vscode.workspace.workspaceFolders;
+        return ( workspace_folders && ( workspace_folders.length === 1 ) && workspace_folders[0] &&
+            this.current_workspace && this.configuration?.use_relative_bookmarks ) ? true : false;
+    };
+
+    private has_workspace_changed = (): boolean =>
+    {
+        let old_workspace = this.current_workspace;
+        let workspace_folders = vscode.workspace.workspaceFolders;
+        if( workspace_folders && ( workspace_folders.length === 1 ) && workspace_folders[0] )
+        {
+            this.current_workspace = workspace_folders[0];
+        }
+        else
+        {
+            this.current_workspace = null;
+        }
+
+        return( old_workspace !== this.current_workspace );
+    };
+
+    private get_stored_bookmarks = ( clear_existing: boolean = false ): void =>
     {
         let bookmarks_as_string: string;
-        let workspace_folders = vscode.workspace.workspaceFolders;
-        if( workspace_folders && ( workspace_folders.length > 0 ) && workspace_folders[0] &&
-            this.configuration?.use_relative_bookmarks )
+        if( this.is_relative() )
         {
             bookmarks_as_string = this.storage.get_workspace_value( "bookmarks_buffer" );
         }
         else
         {
             bookmarks_as_string = this.storage.get_global_value( "bookmarks_buffer" );
+        }
+
+        if( clear_existing )
+        {
+            this.bookmarks.forEach( ( value: Bookmark_item ) => { value.dispose(); } );
+            this.bookmarks = new Array<Bookmark_item>();
         }
 
         if( bookmarks_as_string )
@@ -75,13 +125,10 @@ export class Bookmarks_manager
 
     private store_bookmarks = (): Thenable<void> =>
     {
-        let workspace_folders = vscode.workspace.workspaceFolders;
-
         let bookmarks_as_string = this.serialize_bookmarks();
         if( bookmarks_as_string )
         {
-            if( workspace_folders && ( workspace_folders.length > 0 ) && workspace_folders[0] &&
-                this.configuration?.use_relative_bookmarks )
+            if( this.is_relative() )
             {
                 return this.storage.set_workspace_value( "bookmarks_buffer", bookmarks_as_string );
             }
@@ -91,8 +138,7 @@ export class Bookmarks_manager
             }
         }
 
-        if( workspace_folders && ( workspace_folders.length > 0 ) && workspace_folders[0] &&
-            this.configuration?.use_relative_bookmarks )
+        if( this.is_relative() )
         {
             return this.storage.delete_workspace_value( "bookmarks_buffer" );
         }
@@ -139,9 +185,14 @@ export class Bookmarks_manager
 
     public on_did_rename_files = ( e: vscode.FileRenameEvent ): any =>
     {
+        if( this.has_workspace_changed() )
+        {
+            this.get_stored_bookmarks();
+        }
+
         for( let i = 0; i < e.files.length; i++ )
         {
-            let old_URI: vscode.Uri = e.files[i].newUri;
+            let old_URI: vscode.Uri = e.files[i].oldUri;
             let new_URI: vscode.Uri = e.files[i].newUri;
 
             vscode.workspace.fs.stat( new_URI ).then( ( value: vscode.FileStat ) =>
@@ -149,39 +200,32 @@ export class Bookmarks_manager
                 let new_URI_is_directory = ( value.type === vscode.FileType.Directory );
                 let new_URI_is_file = ( value.type === vscode.FileType.File );
 
-                vscode.workspace.fs.stat( old_URI ).then( ( value: vscode.FileStat ) =>
+                console.log( `old: ${e.files[i].oldUri}, new: ${e.files[i].newUri}, ${new_URI_is_directory}, ${new_URI_is_file}` );
+
+                for( let j = 0; j < this.bookmarks.length; j++ )
                 {
-                    let old_URI_is_directory = ( value.type === vscode.FileType.Directory );
-                    let old_URI_is_file = ( value.type === vscode.FileType.File );
-
-                    console.log( `old: ${e.files[i].oldUri}, ${old_URI_is_directory} new: ${e.files[i].newUri}, ${new_URI_is_directory}` );
-
-                    for( let j = 0; j < this.bookmarks.length; j++ )
+                    if( new_URI_is_file )
                     {
-                        let bookmark = this.bookmarks[i];
-                        let bookmark_URI = vscode.Uri.parse( bookmark.path );
-
-                        if( new_URI_is_file && old_URI_is_file && ( bookmark_URI === old_URI ) )
+                        let old_path = this.convert_URI_absolute_to_relative( old_URI );
+                        if( this.bookmarks[j].path === old_path )
                         {
-                            console.log( `file name change for ${bookmark.bookmark_number}` );
-                            continue;
-                        }
-
-                        if( new_URI_is_directory && old_URI_is_directory &&
-                            ( bookmark_URI.toString().startsWith( old_URI.toString() ) ) )
-                        {
-                            console.log( `directory path change for ${bookmark.bookmark_number}` );
+                            this.bookmarks[j].path = this.convert_URI_absolute_to_relative( new_URI );
                             continue;
                         }
                     }
-                } );
+
+                    if( new_URI_is_directory )
+                    {
+                        let old_path = this.convert_URI_absolute_to_relative( old_URI );
+                        if( this.bookmarks[j].path.startsWith( old_path ) )
+                        {
+                            let new_path = this.convert_URI_absolute_to_relative( new_URI );
+                            this.bookmarks[j].path = this.bookmarks[j].path.replace( old_path, new_path );
+                        }
+                    }
+                }
             } );
         }
-    };
-
-    public on_did_change_workspace_folders = ( e: vscode.WorkspaceFoldersChangeEvent ): any =>
-    {
-        console.log( `on_did_change_workspace_folders` );
     };
 
     private get_bookmark = ( bookmark_number: number ): Bookmark_item | null =>
@@ -197,7 +241,7 @@ export class Bookmarks_manager
         return null;
     };
 
-    private store_bookmark = ( path: string, bookmark_number: number, line: number, character: number ): void =>
+    private store_bookmark = ( path: string, bookmark_number: number, line: number, character: number, relative_not_global: boolean ): void =>
     {
         let bookmark_item = this.get_bookmark( bookmark_number );
         if( bookmark_item )
@@ -206,11 +250,14 @@ export class Bookmarks_manager
             bookmark_item.bookmark_number = bookmark_number;
             bookmark_item.line = line;
             bookmark_item.character = character;
+            bookmark_item.is_relative_not_global = relative_not_global;
 
             return;
         }
 
-        bookmark_item = new Bookmark_item( path, bookmark_number, line, character );
+        if( ( bookmark_number < this.MIN_BOOKMARK_NUMBER ) || ( bookmark_number > this.MAX_BOOKMARK_NUMBER ) ) { return; };
+
+        bookmark_item = new Bookmark_item( path, bookmark_number, line, character, relative_not_global );
         this.bookmarks.push( bookmark_item );
     };
 
@@ -247,11 +294,9 @@ export class Bookmarks_manager
 
     private convert_URI_relative_to_absolute = ( path: string ): vscode.Uri =>
     {
-        let workspace_folders = vscode.workspace.workspaceFolders;
-        if( workspace_folders && ( workspace_folders.length > 0 ) && workspace_folders[0] &&
-            !path.startsWith( "file:///" ) && this.configuration?.use_relative_bookmarks )
+        if( this.is_relative() && !path.startsWith( "file:///" ) )
         {
-            path = `${workspace_folders[0].uri.toString()}/${path}`;
+            path = `${this.current_workspace!.uri.toString()}/${path}`;
         }
 
         return vscode.Uri.parse( path );
@@ -259,11 +304,16 @@ export class Bookmarks_manager
 
     public drop_bookmark = ( path: vscode.Uri, bookmark_number: string, position: vscode.Position ): void =>
     {
+        if( this.has_workspace_changed() )
+        {
+            this.get_stored_bookmarks();
+        }
+
         let file = this.convert_URI_absolute_to_relative( path );
         if( file )
         {
             let bookmark = parseInt( bookmark_number );
-            this.store_bookmark( file, bookmark, position.line, position.character );
+            this.store_bookmark( file, bookmark, position.line, position.character, this.is_relative() );
             this.store_bookmarks();
         }
         else
@@ -274,86 +324,30 @@ export class Bookmarks_manager
 
     public jump_bookmark = async (): Promise<void> =>
     {
-        return this.get_bookmark_and_jump( this.show_bookmark_number_dialog );
+        if( this.has_workspace_changed() )
+        {
+            this.get_stored_bookmarks( true );
+        }
 
-        // return await new Promise( ( resolve, reject ) =>
-        // {
-        //     this.show_bookmark_number_dialog().then( async ( item: Bookmark_item ) =>
-        //         {
-        //             if( item )
-        //             {
-        //                 let path = this.convert_URI_relative_to_absolute( item.path );
-        //                 vscode.workspace.openTextDocument( path ).then( ( value: vscode.TextDocument ): void =>
-        //                 {
-        //                     vscode.window.showTextDocument( value ).then( ( value: vscode.TextEditor ) =>
-        //                     {
-        //                         let position = new vscode.Position( item.line, item.character );
-        //                         utility.move_cursor( value, position );
-        //                         resolve();
-        //                     },
-        //                     ( reason: any ): void =>
-        //                     {
-        //                         reject( "location" );
-        //                     } );
-        //                 },
-        //                 ( reason: any ): void =>
-        //                 {
-        //                     reject( "file" );
-        //                 } );
-        //             }
-        //         } ).
-        //         catch( ( error: string ) =>
-        //         {
-        //             reject( error );
-        //         } );
-        // } );
+        return this.get_bookmark_and_jump( this.show_bookmark_number_dialog );
     };
 
     public open_bookmarks_dialog = async (): Promise<void> =>
     {
+        if( this.has_workspace_changed() )
+        {
+            this.get_stored_bookmarks( true );
+        }
+
         return this.get_bookmark_and_jump( this.show_bookmark_list_dialog );
-
-        // return await new Promise( ( resolve, reject ) =>
-        // {
-        //     this.show_bookmark_list_dialog().then( async ( item: Bookmark_item ) =>
-        //     {
-        //         if( item )
-        //         {
-        //             let path = this.convert_URI_relative_to_absolute( item.path );
-
-        //             console.log( path.toString() );
-
-        //             vscode.workspace.openTextDocument( path ).then( ( value: vscode.TextDocument ): void =>
-        //             {
-        //                 vscode.window.showTextDocument( value ).then( ( value: vscode.TextEditor ) =>
-        //                 {
-        //                     let position = new vscode.Position( item.line, item.character );
-        //                     utility.move_cursor( value, position );
-        //                     resolve();
-        //                 },
-        //                 ( reason: any ): void =>
-        //                 {
-        //                     reject( "location" );
-        //                 } );
-        //             },
-        //             ( reason: any ): void =>
-        //             {
-        //                 reject( "file" );
-        //             } );
-        //         }
-        //     } ).
-        //         catch( ( error: string ) =>
-        //         {
-        //             reject( error );
-        //         } );
-        // } );
     };
 
     public get_bookmark_and_jump = async ( method: Get_bookmark_from_user ): Promise<void> =>
     {
         return await new Promise( ( resolve, reject ) =>
         {
-            method().then( async ( item: Bookmark_item ) =>
+            let title_append = this.is_relative() ? `"${this.current_workspace?.name}" Workspace` : `All Workspaces`;
+            method( title_append ).then( async ( item: Bookmark_item ) =>
             {
                 if( item )
                 {
@@ -366,21 +360,21 @@ export class Bookmarks_manager
                             utility.move_cursor( value, position );
                             resolve();
                         },
-                            ( reason: any ): void =>
-                            {
-                                reject( "location" );
-                            } );
-                    },
                         ( reason: any ): void =>
                         {
-                            reject( "file" );
+                            reject( "location" );
                         } );
+                    },
+                    ( reason: any ): void =>
+                    {
+                        reject( "file" );
+                    } );
                 }
             } ).
-                catch( ( error: string ) =>
-                {
-                    reject( error );
-                } );
+            catch( ( error: string ) =>
+            {
+                reject( error );
+            } );
         } );
     };
 
@@ -396,14 +390,14 @@ export class Bookmarks_manager
                 let bookmark = this.bookmarks[i];
                 let bookmark_number = bookmark.bookmark_number;
                 if( bookmark_number === 0 ) { bookmark_number = 10; }
-                items?.unshift( { label: `${bookmark_number}: `, description: `${bookmark.path} <${bookmark.line}:${bookmark.character}>` } );
+                items.unshift( { label: `${bookmark_number}: `, description: `${bookmark.path} <${bookmark.line + 1}:${bookmark.character + 1}>` } );
             }
         }
 
         return items;
     };
 
-    public show_bookmark_list_dialog = async (): Promise<Bookmark_item> =>
+    public show_bookmark_list_dialog = async ( title_append: string | undefined ): Promise<Bookmark_item> =>
     {
         const disposables: vscode.Disposable[] = [];
         try
@@ -412,7 +406,7 @@ export class Bookmarks_manager
             {
                 let input = vscode.window.createQuickPick<vscode.QuickPickItem>();
 
-                input.title = "Dropped Bookmarks";
+                input.title = `Dropped Bookmarks for ${title_append}`;
                 input.placeholder = "Scroll to bookmark then <enter> to jump, or click on bookmark to jump, or click manage bookmarks...";
 
                 let gear: vscode.QuickInputButton = { iconPath: new vscode.ThemeIcon( 'gear' ), tooltip: "Manage bookmarks" };
@@ -445,9 +439,11 @@ export class Bookmarks_manager
                         else if( id === "clear-all" )
                         {
                             this.remove_all();
-                            this.store_bookmarks();
-                            reject( "empty" );
-                            input.hide();
+                            this.store_bookmarks().then( () =>
+                            {
+                                reject( "empty" );
+                                input.hide();
+                            });
                         }
                         else if( id === "close" )
                         {
@@ -510,7 +506,7 @@ export class Bookmarks_manager
         }
     };
 
-    public show_bookmark_number_dialog = async (): Promise<Bookmark_item> =>
+    public show_bookmark_number_dialog = async ( title_append: string | undefined ): Promise<Bookmark_item> =>
     {
         const disposables: vscode.Disposable[] = [];
         try
@@ -519,7 +515,7 @@ export class Bookmarks_manager
             {
                 let input = vscode.window.createInputBox();
 
-                input.title = "Jump to Bookmark";
+                input.title = `Jump to Bookmark for ${title_append}`;
                 input.placeholder = "Push [1-10] key to jump to bookmark (0 key for bookmark 10)...";
 
                 let delete_all: vscode.QuickInputButton = { iconPath: new vscode.ThemeIcon( 'clear-all' ), tooltip: "Delete all bookmarks" };
@@ -540,9 +536,11 @@ export class Bookmarks_manager
                         if( id === "clear-all" )
                         {
                             this.remove_all();
-                            this.store_bookmarks();
-                            reject( "empty" );
-                            input.hide();
+                            this.store_bookmarks().then( () =>
+                            {
+                                reject( "empty" );
+                                input.hide();
+                            } );
                         }
                         else if( id === "close" )
                         {
@@ -664,9 +662,11 @@ export class Bookmarks_manager
                         if( id === "clear-all" )
                         {
                             this.remove_all();
-                            this.store_bookmarks();
-                            reject( "empty" );
-                            input.hide();
+                            this.store_bookmarks().then( () =>
+                            {
+                                reject( "empty" );
+                                input.hide();
+                            } );
                         }
                         else if( id === "close" )
                         {
@@ -694,11 +694,21 @@ export class Bookmarks_manager
                         {
                             let bookmark_item = bookmarks_to_delete[i];
                             let bookmark_number = parseInt( bookmark_item.label );
-                            if( bookmark_number === 10 ) { bookmark_number = 0 };
+                            if( bookmark_number === 10 ) { bookmark_number = 0; };
                             this.remove( bookmark_number );
                         }
 
-                        input.hide();
+                        if( bookmarks_to_delete.length > 0 )
+                        {
+                            this.store_bookmarks().then( () =>
+                            {
+                                input.hide();
+                            } );
+                        }
+                        else
+                        {
+                            input.hide();
+                        }
                     } ),
 
                     input.onDidChangeValue( async ( e: string ) =>
@@ -735,18 +745,18 @@ class Bookmark_item
     public bookmark_number: number;
     public line: number;
     public character: number;
+    public is_relative_not_global: boolean;
 
-    public constructor( path: string, bookmark_number: number, line: number, character: number )
+    public constructor( path: string, bookmark_number: number, line: number, character: number, relative_not_global: boolean )
     {
         this.path = path;
         this.bookmark_number = bookmark_number;
         this.line = line;
         this.character = character;
+        this.is_relative_not_global = relative_not_global;
     }
 
-    public destroy = (): void =>
-    {
-    };
+    public dispose = (): void => {};
 
     public static serialize = ( item: Bookmark_item ): string =>
     {

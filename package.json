@@ -8,7 +8,7 @@
 		"url": "https://github.com/ralphkw1/brief4vscode.git"
 	},
 	"publisher": "rkdawenterprises",
-	"version": "1.0.9",
+	"version": "1.0.10",
 	"license": "Apache2",
 	"os": ["linux"],
 	"keywords": [
@@ -47,17 +47,17 @@
 				"brief4vscode.use_brief_home": {
 					"type": "boolean",
 					"default": true,
-					"description": "Use home key functionality as documented in Brief. This disables the normal \"smart\" home functionality. Set to false to restore \"smart\" home key functionality, but still maintain Brief home-home-home key functionality."
+					"description": "Use home key functionality as documented in Brief. This disables the normal \"smart\" home functionality. Uncheck to restore \"smart\" home key functionality, but still maintain Brief \"home-home-home\" key functionality."
 				},
 				"brief4vscode.paste_lines_at_home": {
 					"type": "boolean",
 					"default": true,
-					"description": "If the item in the scrap history buffer being pasted is a full line (ends with a line termination), then paste it at the beginning of the current line instead of at the current cursor location."
+					"description": "If the item in the scrap history buffer being pasted is a full line (ends with a line termination), then paste it at the beginning of the current line. Uncheck to paste at the current cursor location."
 				},
 				"brief4vscode.use_relative_bookmarks": {
 					"type": "boolean",
 					"default": true,
-					"description": "Bookmark URI are stored and displayed relative to project workspace folder. Set to false to store and display globally."
+					"description": "Bookmark URI are stored and displayed relative to project workspace folder. Uncheck to store and display globally. Changing this configuration may delete existing stored bookmarks."
 				}
 			}
 		},
@@ -385,11 +385,6 @@
 			{
 				"key": "alt+j",
 				"command": "brief4vscode.jump_bookmark",
-				"when": "editorTextFocus && brief4vscode_enabled"
-			},
-			{
-				"key": "ctrl+shift+alt+h",
-				"command": "brief4vscode.dummy",
 				"when": "editorTextFocus && brief4vscode_enabled"
 			}
 		]
