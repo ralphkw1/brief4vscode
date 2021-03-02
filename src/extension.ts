@@ -35,7 +35,6 @@ export function activate( context: vscode.ExtensionContext )
 	bookmarks_manager = new Bookmarks_manager( local_storage );
 
 	let configuration = get_configuration();
-	commands?.on_configuration_changed( configuration );
 	scrap_manager?.on_configuration_changed( configuration );
 	bookmarks_manager?.on_configuration_changed( configuration );
 
@@ -47,6 +46,7 @@ export function activate( context: vscode.ExtensionContext )
 		scrap_manager,
 		bookmarks_manager );
 
+	commands?.on_configuration_changed( configuration );
 	commands.set_overstrike_mode( false );
 
 	context.subscriptions.push(

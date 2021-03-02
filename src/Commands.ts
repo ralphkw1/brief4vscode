@@ -671,9 +671,10 @@ export class Commands
 
             if( at_line_start )
             {
-                if( this.is_marking_mode && this.selection_start )
+                if( this.is_marking_mode && this.selection_start && this.selection_end )
                 {
                     this.select( this.selection_start, visible_top_position );
+                    editor.revealRange( new vscode.Range( this.selection_end, this.selection_end ) );
 
                     return;
                 }
@@ -681,11 +682,13 @@ export class Commands
                 if( this.is_line_marking_mode && this.line_selection_start && this.line_selection_end )
                 {
                     this.select_lines_with_position( this.line_selection_start, visible_top_position );
+                    editor.revealRange( new vscode.Range( this.line_selection_end, this.line_selection_end ) );
 
                     return;
                 }
 
                 editor.selection = new vscode.Selection( visible_top_position, visible_top_position );
+                editor.revealRange( new vscode.Range( visible_top_position, visible_top_position ) );
 
                 return;
             }
@@ -694,14 +697,16 @@ export class Commands
             {
                 let home_position = new vscode.Position( cursor_position.line, 0 );
 
-                if( this.is_marking_mode && this.selection_start )
+                if( this.is_marking_mode && this.selection_start && this.selection_end )
                 {
                     this.select( this.selection_start, home_position );
+                    editor.revealRange( new vscode.Range( this.selection_end, this.selection_end ) );
 
                     return;
                 }
 
                 editor.selection = new vscode.Selection( home_position, home_position );
+                editor.revealRange( new vscode.Range( home_position, home_position ) );
 
                 return;
             }
