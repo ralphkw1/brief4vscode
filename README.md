@@ -1,6 +1,6 @@
 <div style="background-color:#F5FFFF">
-<h2 style="color:#0000AA">Brief Text Editor Emulation for Visual Studio Code</h2>
-<p>This extension adds key bindings and functionality that attempts to emulate many features of the original BRIEF MS-DOS application.</p>
+<h2 style="color:#0000AA">Brief Text Editor Emulation and Keymap for Visual Studio Code</h2>
+<p>This extension adds key bindings and functionality that attempts to emulate many features of the original BRIEF MS-DOS application. Adds it's numbered bookmarks, overtype mode, home-home-home and end-end-end, line marking modes, single key cut copy and paste, clipboard swap, and clipboard history commands, as well as most of the original keybindings.</p>
 <p>Some history. BRIEF (Basic Re-configurable Interactive Editing Facility) was a popular programmer's text editor in the late 1980s and early 1990s. Developed by UnderWare Inc, it was quite powerful and feature rich for its time. For more information, see the Wikipedia page &quot;<a href="https://en.wikipedia.org/wiki/Brief_(text_editor)" target="_blank">Brief (text editor)</a>&quot;.</p>
 <h3 style="color:#0000AA">Installation</h3>
 <p>This extension has only been tested on Linux. May work okay for Windows, just have not tested it yet. I don't have a Mac.</p>

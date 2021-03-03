@@ -1,25 +1,30 @@
 {
 	"name": "brief4vscode",
-	"displayName": "brief4vscode",
-	"description": "Adds key bindings and functionality that attempts to emulate many features of the original BRIEF MS-DOS application.",
+	"displayName": "Brief Editor Keymap Emulation",
+	"description": "Adds key bindings and functionality to emulate many features of the original BRIEF MS-DOS application.",
 	"icon": "media/brief4vscode_128.png",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/ralphkw1/brief4vscode.git"
 	},
 	"publisher": "rkdawenterprises",
-	"version": "1.0.10",
+	"version": "1.0.11",
 	"license": "Apache2",
 	"os": ["linux"],
 	"keywords": [
-		"brief"
+		"brief",
+		"keymap",
+		"keybinding",
+		"clipboard",
+		"bookmark",
+		"overtype"
 	],
 	"engines": {
 		"vscode": "^1.53.0"
 	},
 	"categories": [
-		"Other",
-		"Keymaps"
+		"Keymaps",
+		"Other"
 	],
 	"activationEvents": [
 		"*",
