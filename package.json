@@ -8,7 +8,7 @@
 		"url": "https://github.com/ralphkw1/brief4vscode.git"
 	},
 	"publisher": "rkdawenterprises",
-	"version": "1.0.11",
+	"version": "1.0.12",
 	"license": "Apache2",
 	"os": ["linux"],
 	"keywords": [

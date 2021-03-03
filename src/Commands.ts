@@ -218,9 +218,9 @@ export class Commands
                     }
                 }
             }
-        }
 
-        this.stop_all_marking_modes();
+            this.stop_all_marking_modes();
+        }
 
         vscode.commands.executeCommand( "default:type", args );
     };
