@@ -8,15 +8,18 @@
 		"url": "https://github.com/ralphkw1/brief4vscode.git"
 	},
 	"publisher": "rkdawenterprises",
-	"version": "1.0.13",
+	"version": "1.1.0",
 	"license": "Apache2",
-	"os": ["linux"],
+	"os": ["linux","windows"],
 	"keywords": [
 		"brief",
 		"keymap",
+		"keymaps",
 		"keybinding",
+		"keybindings",
 		"clipboard",
 		"bookmark",
+		"bookmarks",
 		"overtype"
 	],
 	"engines": {

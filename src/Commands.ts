@@ -451,13 +451,12 @@ export class Commands
             {
                 let end_line = this.line_selection_end.line - 1;
                 this.select_lines( this.line_selection_start.line, end_line );
-                editor.revealRange( new vscode.Range( this.line_selection_end, this.line_selection_end ) );
+                let reveal_position = new vscode.Position( this.line_selection_end.line, 0 );
+                editor.revealRange( new vscode.Range( reveal_position, reveal_position ) );
             }
 
             return;
         }
-
-        vscode.window.showInformationMessage( `Error in up()` );
 
         vscode.commands.executeCommand( "cursorUp", args );
     };
@@ -485,13 +484,12 @@ export class Commands
             {
                 let end_line = this.line_selection_end.line + 1;
                 this.select_lines( this.line_selection_start.line, end_line );
-                editor.revealRange( new vscode.Range( this.line_selection_end, this.line_selection_end ) );
+                let reveal_position = new vscode.Position( this.line_selection_end.line, 0 );
+                editor.revealRange( new vscode.Range( reveal_position, reveal_position ) );
             }
 
             return;
         }
-
-        vscode.window.showInformationMessage( `Error in down()` );
 
         vscode.commands.executeCommand( "cursorDown", args );
     };
@@ -518,8 +516,6 @@ export class Commands
             return;
         }
 
-        vscode.window.showInformationMessage( `Error in left()` );
-
         vscode.commands.executeCommand( "cursorLeft", args );
     };
 
@@ -545,8 +541,6 @@ export class Commands
             this.down( null );
             return;
         }
-
-        vscode.window.showInformationMessage( `Error in right()` );
 
         vscode.commands.executeCommand( "cursorRight", args );
     };
@@ -575,13 +569,12 @@ export class Commands
                 let lines_in_view = editor.visibleRanges[0].end.line - editor.visibleRanges[0].start.line;
                 let end_line = this.line_selection_end.line - lines_in_view;
                 this.select_lines( this.line_selection_start.line, end_line );
-                editor.revealRange( new vscode.Range( this.line_selection_end, this.line_selection_end ) );
+                let reveal_position = new vscode.Position( this.line_selection_end.line, 0 );
+                editor.revealRange( new vscode.Range( reveal_position, reveal_position ) );
             }
 
             return;
         }
-
-        vscode.window.showInformationMessage( `Error in page_up()` );
 
         vscode.commands.executeCommand( "cursorPageUp", args );
     };
@@ -610,13 +603,12 @@ export class Commands
                 let lines_in_view = editor.visibleRanges[0].end.line - editor.visibleRanges[0].start.line;
                 let end_line = this.line_selection_end.line + lines_in_view;
                 this.select_lines( this.line_selection_start.line, end_line );
-                editor.revealRange( new vscode.Range( this.line_selection_end, this.line_selection_end ) );
+                let reveal_position = new vscode.Position( this.line_selection_end.line, 0 );
+                editor.revealRange( new vscode.Range( reveal_position, reveal_position ) );
             }
 
             return;
         }
-
-        vscode.window.showInformationMessage( `Error in page_down()` );
 
         vscode.commands.executeCommand( "cursorPageDown", args );
     };
@@ -658,7 +650,8 @@ export class Commands
                     if( editor )
                     {
                         this.select_lines( this.line_selection_start.line, 0 );
-                        editor.revealRange( new vscode.Range( this.line_selection_end, this.line_selection_end ) );
+                        let reveal_position = new vscode.Position( this.line_selection_end.line, 0 );
+                        editor.revealRange( new vscode.Range( reveal_position, reveal_position ) );
                     }
 
                     return;
@@ -682,7 +675,8 @@ export class Commands
                 if( this.is_line_marking_mode && this.line_selection_start && this.line_selection_end )
                 {
                     this.select_lines_with_position( this.line_selection_start, visible_top_position );
-                    editor.revealRange( new vscode.Range( this.line_selection_end, this.line_selection_end ) );
+                    let reveal_position = new vscode.Position( this.line_selection_end.line, 0 );
+                    editor.revealRange( new vscode.Range( reveal_position, reveal_position ) );
 
                     return;
                 }
