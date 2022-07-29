@@ -464,7 +464,7 @@ export class Bookmarks_manager
                         this.current = null;
                     } ),
 
-                    input.onDidChangeSelection( async ( e: vscode.QuickPickItem[] ) =>
+                    input.onDidChangeSelection( async ( e: readonly vscode.QuickPickItem[] ) =>
                     {
                         if( e.length > 0 )
                         {

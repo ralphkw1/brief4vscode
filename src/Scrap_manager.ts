@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import * as utility from './utility';
 import { Local_storage } from './Local_storage';
 import { Configuration } from "./extension";
+import { Column_marking, Column_mode_block_data_mime_type } from './Column_marking';
 
 export class Scrap_manager
 {
@@ -109,29 +110,40 @@ export class Scrap_manager
             let editor = vscode.window.activeTextEditor;
             if( editor )
             {
-                editor.edit( ( editBuilder: vscode.TextEditorEdit ) =>
-                {
-                    let editor = vscode.window.activeTextEditor;
-                    if( editor )
-                    {
-                        let is_selection = !editor.selection.isEmpty;
-                        if( !this.configuration?.paste_lines_at_home || is_selection )
-                        {
-                            editBuilder.delete( editor.selection );
-                            editBuilder.insert( editor.selection.active, item );
-                        }
-                        else
-                        {
-                            const os = require( 'os' );
-                            if( item.endsWith( os.EOL ) )
-                            {
-                                utility.move_cursor( editor, new vscode.Position( editor.selection.active.line, 0 ) );
-                            }
+                let result: Thenable<unknown> | null = null;
 
-                            editBuilder.insert( editor.selection.active, item );
+                if( item.includes( Column_mode_block_data_mime_type ) )
+                {
+                    result = Column_marking.paste( editor, item );
+                }
+                else
+                {
+                    result = editor.edit( ( editBuilder: vscode.TextEditorEdit ) =>
+                    {
+                        let editor = vscode.window.activeTextEditor;
+                        if( editor )
+                        {
+                            let is_selection = !editor.selection.isEmpty;
+                            if( !this.configuration?.paste_lines_at_home || is_selection )
+                            {
+                                editBuilder.delete( editor.selection );
+                                editBuilder.insert( editor.selection.active, item );
+                            }
+                            else
+                            {
+                                const os = require( 'os' );
+                                if( item.endsWith( os.EOL ) )
+                                {
+                                    utility.move_cursor( editor, new vscode.Position( editor.selection.active.line, 0 ) );
+                                }
+
+                                editBuilder.insert( editor.selection.active, item );
+                            }
                         }
-                    }
-                } ).then( () =>
+                    });
+                }
+
+                result?.then( () =>
                 {
                     this.push_to_system_clipboard( item );
                     this.scrap_buffer.add_exclusive( item );
@@ -219,7 +231,7 @@ export class Scrap_manager
                         this.current = null;
                     } ),
 
-                    input.onDidChangeSelection( async ( e: vscode.QuickPickItem[] ) =>
+                    input.onDidChangeSelection( async ( e: readonly vscode.QuickPickItem[] ) =>
                     {
                         if( e.length > 0 )
                         {
