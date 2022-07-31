@@ -4,53 +4,61 @@ import * as utility from './utility';
 
 export class Marking
 {
-    static s_is_marking_mode: boolean = false;
-    private static s_selection_start: vscode.Position | null = null;
+    private m_is_marking_mode: boolean;
 
-    static enable_marking_mode = (): void =>
+    public get is_marking_mode(): boolean
+    {
+        return this.m_is_marking_mode;
+    }
+
+    private m_selection_start: vscode.Position | null;
+
+    public constructor()
+    {
+        this.m_is_marking_mode = false;
+        this.m_selection_start = null;
+    }
+
+    public enable_marking_mode = (): void =>
     {
         let editor = vscode.window.activeTextEditor;
-        if( editor )
-        {
-            this.s_is_marking_mode = true;
-            this.s_selection_start = editor.selection.active;
-            vscode.commands.executeCommand( "cursorRightSelect" );
+        if (editor) {
+            this.m_is_marking_mode = true;
+            this.m_selection_start = editor.selection.active;
+            vscode.commands.executeCommand("cursorRightSelect");
         }
     };
 
-    static stop_marking_mode = ( remove_selection?: boolean ): void =>
+    public stop_marking_mode = (remove_selection?: boolean): void =>
     {
-        this.s_is_marking_mode = false;
-        this.s_selection_start = null;
+        this.m_is_marking_mode = false;
+        this.m_selection_start = null;
 
-        if( remove_selection )
-        {
+        if (remove_selection) {
             utility.remove_selection();
         }
     };
 
 
-    static on_did_change_text_editor_selection( editor: vscode.TextEditor )
+    public on_did_change_text_editor_selection(editor: vscode.TextEditor)
     {
-        if( this.s_is_marking_mode && ( this.s_selection_start !== null ) )
-        {
-            this.select( editor, editor.selection.active );
+        if (this.m_is_marking_mode && (this.m_selection_start !== null)) {
+            this.select(editor, editor.selection.active);
             return;
         }
     }
 
-    static select = (  editor: vscode.TextEditor,
-                       selection_end?: vscode.Position ): void =>
+    public select = (editor: vscode.TextEditor,
+        selection_end?: vscode.Position): void =>
     {
-        if( this.s_selection_start !== null )
-        {
-            selection_end = selection_end ?? this.s_selection_start;
+        if (this.m_selection_start !== null) {
+            selection_end = selection_end ?? this.m_selection_start;
 
-            this.s_selection_start = editor.document.validatePosition( this.s_selection_start );
-            selection_end = editor.document.validatePosition( selection_end );
+            this.m_selection_start = editor.document.validatePosition(this.m_selection_start);
+            selection_end = editor.document.validatePosition(selection_end);
 
-            editor.selection = new vscode.Selection( this.s_selection_start, selection_end );
-            editor.revealRange( new vscode.Range( selection_end, selection_end ) );
+            editor.selection = new vscode.Selection(this.m_selection_start, selection_end);
+            editor.revealRange(new vscode.Range(selection_end, selection_end));
         }
     };
 }

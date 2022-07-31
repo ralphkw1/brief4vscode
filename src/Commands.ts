@@ -14,6 +14,7 @@ export class Commands
     private status_bar: Status_bar;
     private scrap_manager: Scrap_manager;
     private bookmarks_manager: Bookmarks_manager;
+    private m_marking: Marking;
 
     private configuration: Configuration | null;
 
@@ -33,6 +34,8 @@ export class Commands
         this.bookmarks_manager = bookmarks_manager;
 
         this.scrap_manager.add_from_system_clipboard();
+
+        this.m_marking = new Marking();
 
         this.is_overstrike_mode = false;
 
@@ -156,7 +159,7 @@ export class Commands
     {
         if( e.kind === vscode.TextEditorSelectionChangeKind.Mouse )
         {
-            Marking.on_did_change_text_editor_selection( e.textEditor );
+            this.m_marking.on_did_change_text_editor_selection( e.textEditor );
 
             let editor = vscode.window.activeTextEditor;
             if( editor )
@@ -222,7 +225,7 @@ export class Commands
 
     private stop_all_marking_modes = ( remove_selection?: boolean ): void =>
     {
-        Marking.stop_marking_mode( remove_selection );
+        this.m_marking.stop_marking_mode( remove_selection );
 
         this.is_line_marking_mode = false;
         this.line_selection_start = this.line_selection_end = null;
@@ -240,19 +243,16 @@ export class Commands
 
     public marking_mode_toggle = ( args: any[] | null ): void =>
     {
-        Marking.s_is_marking_mode = !Marking.s_is_marking_mode;
-        this.set_marking_mode( Marking.s_is_marking_mode );
+        this.set_marking_mode( this.m_marking.is_marking_mode );
     };
 
     public line_marking_mode_toggle = ( args: any[] | null ): void =>
     {
-        this.is_line_marking_mode = !this.is_line_marking_mode;
         this.set_line_marking_mode( this.is_line_marking_mode );
     };
 
     public column_marking_mode_toggle = ( args: any[] | null ): void =>
     {
-        Column_marking.s_is_marking_mode = !Column_marking.s_is_marking_mode;
         this.set_column_marking_mode( Column_marking.s_is_marking_mode );
     };
 
@@ -265,8 +265,6 @@ export class Commands
             this.set_overstrike_mode( false );
         }
 
-        Marking.s_is_marking_mode = is_marking_mode;
-
         this.status_bar?.set_marking_mode( is_marking_mode );
         vscode.commands.executeCommand( "setContext", "brief4vscode_marking_mode", is_marking_mode );
 
@@ -276,7 +274,7 @@ export class Commands
         }
         else
         {
-            Marking.enable_marking_mode();
+            this.m_marking.enable_marking_mode();
         }
     };
 
@@ -289,9 +287,7 @@ export class Commands
             this.set_overstrike_mode( false );
         }
 
-        this.is_line_marking_mode = is_line_marking_mode;
         this.status_bar?.set_marking_mode( is_line_marking_mode, "LINE" );
-
         vscode.commands.executeCommand( "setContext", "brief4vscode_marking_mode", is_line_marking_mode );
 
         if( !is_line_marking_mode )
@@ -312,8 +308,6 @@ export class Commands
         {
             this.set_overstrike_mode( false );
         }
-
-        Column_marking.s_is_marking_mode = is_column_marking_mode;
 
         this.status_bar?.set_marking_mode( is_column_marking_mode, "COLUMN" );
         vscode.commands.executeCommand( "setContext", "brief4vscode_marking_mode", is_column_marking_mode );
@@ -383,7 +377,7 @@ export class Commands
 
     public up = ( args: any[] | null ): void =>
     {
-        if( Marking.s_is_marking_mode )
+        if( this.m_marking.is_marking_mode )
         {
             vscode.commands.executeCommand( "cursorUpSelect", args ).then( () =>
             {
@@ -416,7 +410,7 @@ export class Commands
 
     public down = ( args: any[] | null ): void =>
     {
-        if( Marking.s_is_marking_mode )
+        if( this.m_marking.is_marking_mode )
         {
             vscode.commands.executeCommand( "cursorDownSelect", args ).then( () =>
             {
@@ -449,7 +443,7 @@ export class Commands
 
     public left = ( args: any[] | null ): void =>
     {
-        if( Marking.s_is_marking_mode )
+        if( this.m_marking.is_marking_mode )
         {
             vscode.commands.executeCommand( "cursorLeftSelect", args ).then( () =>
             {
@@ -474,7 +468,7 @@ export class Commands
 
     public right = ( args: any[] | null ): void =>
     {
-        if( Marking.s_is_marking_mode  )
+        if( this.m_marking.is_marking_mode  )
         {
             vscode.commands.executeCommand( "cursorRightSelect", args ).then( () =>
             {
@@ -499,7 +493,7 @@ export class Commands
 
     public page_up = ( args: any[] | null ): void =>
     {
-        if( Marking.s_is_marking_mode )
+        if( this.m_marking.is_marking_mode )
         {
             vscode.commands.executeCommand( "cursorPageUpSelect", args ).then( () =>
             {
@@ -533,7 +527,7 @@ export class Commands
 
     public page_down = ( args: any[] | null ): void =>
     {
-        if( Marking.s_is_marking_mode )
+        if( this.m_marking.is_marking_mode )
         {
             vscode.commands.executeCommand( "cursorPageDownSelect", args ).then( () =>
             {
@@ -582,7 +576,7 @@ export class Commands
 
             if( at_window_start )
             {
-                if( Marking.s_is_marking_mode )
+                if( this.m_marking.is_marking_mode )
                 {
                     vscode.commands.executeCommand( "cursorTopSelect", args ).then( () =>
                     {
@@ -616,9 +610,9 @@ export class Commands
 
             if( at_line_start )
             {
-                if( Marking.s_is_marking_mode )
+                if( this.m_marking.is_marking_mode )
                 {
-                    Marking.select( editor, visible_top_position );
+                    this.m_marking.select( editor, visible_top_position );
                     return;
                 }
 
@@ -643,9 +637,9 @@ export class Commands
             {
                 let home_position = new vscode.Position( cursor_position.line, 0 );
 
-                if( Marking.s_is_marking_mode )
+                if( this.m_marking.is_marking_mode )
                 {
-                    Marking.select( editor, home_position );
+                    this.m_marking.select( editor, home_position );
                     return;
                 }
 
@@ -658,7 +652,7 @@ export class Commands
             }
             else
             {
-                if( Marking.s_is_marking_mode )
+                if( this.m_marking.is_marking_mode )
                 {
                     vscode.commands.executeCommand( "cursorHomeSelect", args ).then( () =>
                     {
@@ -717,7 +711,7 @@ export class Commands
 
             if( at_window_end )
             {
-                if( Marking.s_is_marking_mode )
+                if( this.m_marking.is_marking_mode )
                 {
                     vscode.commands.executeCommand( "cursorBottomSelect", args ).then( () =>
                     {
@@ -746,9 +740,9 @@ export class Commands
 
             if( at_line_end )
             {
-                if( Marking.s_is_marking_mode )
+                if( this.m_marking.is_marking_mode )
                 {
-                    Marking.select( editor, visible_bottom_position );
+                    this.m_marking.select( editor, visible_bottom_position );
                     return;
                 }
 
@@ -766,7 +760,7 @@ export class Commands
                 return;
             }
 
-            if( Marking.s_is_marking_mode )
+            if( this.m_marking.is_marking_mode )
             {
                 vscode.commands.executeCommand( "cursorEndSelect", args ).then( () =>
                 {

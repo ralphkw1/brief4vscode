@@ -5,118 +5,149 @@ import { KeyEvent } from './utility';
 
 export class Line_marking
 {
-    static s_is_marking_mode: boolean = false;
-    private static s_selection_start_line: number | null = null;
+    private m_is_marking_mode: boolean;
 
-    static enable_marking_mode = (): void =>
+    public get is_marking_mode(): boolean
+    {
+        return this.m_is_marking_mode;
+    }
+
+    private m_selection_start: vscode.Position | null;
+    private m_selection_end: vscode.Position | null;
+
+    public constructor()
+    {
+        this.m_is_marking_mode = false;
+        this.m_selection_start = null;
+        this.m_selection_end = null;
+    }
+
+    public get_at_window_start(visible_top_position: vscode.Position): boolean
+    {
+        if (this.m_is_marking_mode && (this.m_selection_start !== null) && (this.m_selection_end !== null)) {
+            return (this.m_selection_end.line <= visible_top_position.line);
+        }
+        else {
+            return false;
+        }
+    }
+
+    public enable_marking_mode = (): void =>
     {
         let editor = vscode.window.activeTextEditor;
-        if( editor )
-        {
-            this.s_is_marking_mode = true;
-            this.s_selection_start_line = editor.selection.active.line;
-            this.select( editor );
+        if (editor) {
+            this.m_is_marking_mode = true;
+            this.m_selection_start = editor.selection.active;
+            this.select(editor);
         }
     };
 
-    static stop_marking_mode = ( remove_selection?: boolean ): void =>
+    public stop_marking_mode = (remove_selection?: boolean): void =>
     {
-        this.s_is_marking_mode = false;
-        this.s_selection_start_line = null;
+        this.m_is_marking_mode = false;
+        this.m_selection_start = null;
+        this.m_selection_end = null;
 
-        if( remove_selection )
-        {
+        if (remove_selection) {
             utility.remove_selection();
         }
     };
 
-    static on_did_change_text_editor_selection( editor: vscode.TextEditor )
+    public on_did_change_text_editor_selection(editor: vscode.TextEditor)
     {
-        if( this.s_is_marking_mode && ( this.s_selection_start_line !== null ) )
-        {
-            this.select( editor, editor.selection.active.line );
+        if (this.m_is_marking_mode && (this.m_selection_start !== null)) {
+            this.select_with_position(editor, this.m_selection_start, editor.selection.active);
             return;
         }
     }
 
-    private static select = ( editor: vscode.TextEditor,
-                      selection_end_line?: number ): void =>
+    private select = (editor: vscode.TextEditor,
+        selection_start_line?: number,
+        selection_end_line?: number): vscode.Selection =>
     {
-        if( this.s_selection_start_line !== null )
-        {
-            selection_end_line = selection_end_line ?? this.s_selection_start_line;
+        selection_start_line = selection_start_line ?? editor.selection.active.line;
+        selection_end_line = selection_end_line ?? selection_start_line;
 
-            let selection_start: vscode.Position;
-            let selection_end: vscode.Position;
-
-            let selection_end_line_validated = editor.document.validatePosition( new vscode.Position( selection_end_line, 0 ) );
-            
-            if( this.s_selection_start_line >= selection_end_line )
-            {
-                selection_end = selection_end_line_validated;
-                selection_start = editor.document.lineAt( new vscode.Position( this.s_selection_start_line, 0 ) ).rangeIncludingLineBreak.end;
-            }
-            else
-            {
-                selection_start = new vscode.Position( this.s_selection_start_line, 0 );
-                selection_end = editor.document.lineAt( selection_end_line_validated ).rangeIncludingLineBreak.end;
-            }
-
-            editor.selection = new vscode.Selection( selection_start, selection_end );
-            editor.revealRange( new vscode.Range( selection_end, selection_end ) );
+        if (selection_start_line < 0) {
+            selection_start_line = 0;
         }
+        if (selection_end_line < 0) {
+            selection_end_line = 0;
+        }
+
+        return this.select_with_position(editor, new vscode.Position(selection_start_line, 0), new vscode.Position(selection_end_line, 0));
     };
 
-    static caret_change_handler = ( key_code: number ): void =>
+    public select_with_position = (editor: vscode.TextEditor,
+        selection_start: vscode.Position,
+        selection_end: vscode.Position): vscode.Selection =>
     {
-        if( this.s_selection_start_line !== null )
-        {
+        selection_start = selection_start ?? editor.selection.active;
+        selection_end = selection_end ?? selection_start;
+
+        this.m_selection_start = editor.document.validatePosition(new vscode.Position(selection_start.line, 0));
+        let end_line_range = editor.document.lineAt(editor.document.validatePosition(selection_end)).range;
+        this.m_selection_end = end_line_range.end;
+
+        let start_position = this.m_selection_start;
+        let next_line_position;
+        if (selection_end.line >= selection_start.line) {
+            next_line_position = editor.document.validatePosition(new vscode.Position(this.m_selection_end.line + 1, 0));
+        }
+        else {
+            let start_line_range = editor.document.lineAt(start_position).rangeIncludingLineBreak;
+            start_position = start_line_range.end;
+            next_line_position = end_line_range.start;
+        }
+
+        let selection = new vscode.Selection(start_position, next_line_position);
+        editor.selection = selection;
+
+        let reveal_position = new vscode.Position(next_line_position.line, 0);
+        editor.revealRange(new vscode.Range(reveal_position, reveal_position));
+
+        return selection;
+    };
+
+    public caret_change_handler = (key_code: number): void =>
+    {
+        if (this.m_is_marking_mode && (this.m_selection_start !== null) && (this.m_selection_end !== null)) {
             let editor = vscode.window.activeTextEditor;
-            if( editor )
-            {
+            if (editor) {
                 let current = editor.selection.active;
 
-                if( key_code === KeyEvent.VK_DOWN )
-                {
-                    if( current.line <= this.s_selection_start_line )
-                    {
-                        Line_marking.select( editor, editor.selection.active.line + 1 );
-                        return;
-                    }
-
-                    if( current.line > this.s_selection_start_line )
-                    {
-                        Line_marking.select( editor, editor.selection.active.line );
-                        return;
-                    }
-                }
-
-                if( key_code === KeyEvent.VK_UP )
-                {
-                    if( current.line > this.s_selection_start_line )
-                    {
-                        Line_marking.select( editor, editor.selection.active.line - 2 );
-                        return;
-                    }
-
-                    Line_marking.select( editor, editor.selection.active.line - 1 );
+                if (key_code === utility.KeyEvent.VK_UP) {
+                    let end_line = this.m_selection_end.line - 1;
+                    this.select(editor, this.m_selection_start.line, end_line);
                     return;
                 }
 
-                if( key_code === KeyEvent.VK_PAGE_UP )
-                {
-                    let lines_in_view = editor.visibleRanges[0].end.line - editor.visibleRanges[0].start.line;
-                    let end_line = editor.selection.active.line - lines_in_view;
-                    this.select( editor, end_line );
+                if (key_code === utility.KeyEvent.VK_DOWN) {
+                    let end_line = this.m_selection_end.line + 1;
+                    this.select(editor, this.m_selection_start.line, end_line);
+                    return;
                 }
 
-                if( key_code === KeyEvent.VK_PAGE_DOWN )
-                {
+                if (key_code === utility.KeyEvent.VK_PAGE_UP) {
                     let lines_in_view = editor.visibleRanges[0].end.line - editor.visibleRanges[0].start.line;
-                    let end_line = editor.selection.active.line + lines_in_view;
-                    this.select( editor, end_line );
+                    let end_line = this.m_selection_end.line - lines_in_view;
+                    this.select(editor, this.m_selection_start.line, end_line);
+                    return;
+                }
+
+                if (key_code === utility.KeyEvent.VK_PAGE_DOWN) {
+                    let lines_in_view = editor.visibleRanges[0].end.line - editor.visibleRanges[0].start.line;
+                    let end_line = this.m_selection_end.line + lines_in_view;
+                    this.select(editor, this.m_selection_start.line, end_line);
+                    return;
                 }
             }
+        }
+    };
+
+    public select_from_start = (editor:vscode.TextEditor, end:number) => {
+        if (this.m_selection_start !== null) {
+            this.select(editor, this.m_selection_start.line, end);
         }
     };
 }
