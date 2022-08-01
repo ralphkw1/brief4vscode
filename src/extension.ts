@@ -15,11 +15,11 @@ export interface Configuration
 	use_relative_bookmarks: boolean | undefined;
 };
 
-let local_storage: Local_storage | null;
-let commands: Commands | null = null;
-let status_bar: Status_bar | null = null;
-let scrap_manager: Scrap_manager | null = null;
-let bookmarks_manager: Bookmarks_manager | null = null;
+let s_local_storage: Local_storage | null;
+let s_commands: Commands | null = null;
+let s_status_bar: Status_bar | null = null;
+let s_scrap_manager: Scrap_manager | null = null;
+let s_bookmarks_manager: Bookmarks_manager | null = null;
 
 export function activate( context: vscode.ExtensionContext )
 {
@@ -29,32 +29,32 @@ export function activate( context: vscode.ExtensionContext )
 
 	vscode.commands.executeCommand( "setContext", "brief4vscode_enabled", true );
 
-	local_storage = new Local_storage( context );
-	status_bar = new Status_bar();
-	scrap_manager = new Scrap_manager( local_storage );
-	bookmarks_manager = new Bookmarks_manager( local_storage );
+	s_local_storage = new Local_storage( context );
+	s_status_bar = new Status_bar();
+	s_scrap_manager = new Scrap_manager( s_local_storage );
+	s_bookmarks_manager = new Bookmarks_manager( s_local_storage );
 
 	let configuration = get_configuration();
-	scrap_manager?.on_configuration_changed( configuration );
-	bookmarks_manager?.on_configuration_changed( configuration );
+	s_scrap_manager?.on_configuration_changed( configuration );
+	s_bookmarks_manager?.on_configuration_changed( configuration );
 
-	scrap_manager.initialize();
-	bookmarks_manager.initialize();
+	s_scrap_manager.initialize();
+	s_bookmarks_manager.initialize();
 
-	commands = new Commands( context,
-		status_bar,
-		scrap_manager,
-		bookmarks_manager );
+	s_commands = new Commands( context,
+		s_status_bar,
+		s_scrap_manager,
+		s_bookmarks_manager );
 
-	commands?.on_configuration_changed( configuration );
-	commands.set_overstrike_mode( false );
+	s_commands?.on_configuration_changed( configuration );
+	s_commands.set_overstrike_mode( false );
 
 	context.subscriptions.push(
-		commands,
-		bookmarks_manager,
-		scrap_manager,
-		status_bar,
-		local_storage );
+		s_commands,
+		s_bookmarks_manager,
+		s_scrap_manager,
+		s_status_bar,
+		s_local_storage );
 
 	console.log( 'Extension "brief4vscode" is now active!' );
 }
@@ -90,12 +90,12 @@ function configuration_changed( e: vscode.ConfigurationChangeEvent ): any
 	if( e.affectsConfiguration( "brief4vscode.use_brief_home" ) ||
 		e.affectsConfiguration( "brief4vscode.paste_lines_at_home" ) )
 	{
-		commands?.on_configuration_changed( configuration );
-		scrap_manager?.on_configuration_changed( configuration );
+		s_commands?.on_configuration_changed( configuration );
+		s_scrap_manager?.on_configuration_changed( configuration );
 	}
 
 	if( e.affectsConfiguration( "brief4vscode.use_relative_bookmarks" ) )
 	{
-		bookmarks_manager?.on_configuration_changed( configuration );
+		s_bookmarks_manager?.on_configuration_changed( configuration );
 	}
 }

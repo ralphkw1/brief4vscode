@@ -1,4 +1,4 @@
-import { table } from 'console';
+
 import * as vscode from 'vscode';
 import { Scrap_manager } from './Scrap_manager';
 
@@ -7,34 +7,29 @@ export class Column_marking
     private readonly COLUMN_DECORATION_TYPE: vscode.TextEditorDecorationType =
         vscode.window.createTextEditorDecorationType({ backgroundColor: new vscode.ThemeColor("editor.selectionBackground") });
 
-    private s_is_marking_mode: boolean;
+    private m_is_marking_mode: boolean;
+    public get is_marking_mode(): boolean { return this.m_is_marking_mode; }
 
-    public get is_marking_mode(): boolean
-    {
-        return this.s_is_marking_mode;
-    }
-
-    private s_selection_start: vscode.Position | null;
-
-    private s_decorations_array: vscode.DecorationOptions[] | null;
+    private m_selection_start: vscode.Position | null;
+    private m_decorations_array: vscode.DecorationOptions[] | null;
 
     public constructor()
     {
-        this.s_is_marking_mode = false;
-        this.s_selection_start = null;
-        this.s_decorations_array = null;
+        this.m_is_marking_mode = false;
+        this.m_selection_start = null;
+        this.m_decorations_array = null;
     }
 
     public enable_marking_mode = (): void =>
     {
         let editor = vscode.window.activeTextEditor;
         if (editor) {
-            this.s_is_marking_mode = true;
-            this.s_selection_start = editor.selection.active;
-            this.s_decorations_array = [];
+            this.m_is_marking_mode = true;
+            this.m_selection_start = editor.selection.active;
+            this.m_decorations_array = [];
 
-            let move = editor.document.validatePosition(new vscode.Position(this.s_selection_start.line,
-                this.s_selection_start.character + 1));
+            let move = editor.document.validatePosition(new vscode.Position(this.m_selection_start.line,
+                this.m_selection_start.character + 1));
             editor.selection = new vscode.Selection(move, move);
 
             this.caret_change_handler();
@@ -43,9 +38,9 @@ export class Column_marking
 
     public stop_marking_mode = (remove_selection?: boolean): void =>
     {
-        this.s_is_marking_mode = false;
-        this.s_selection_start = null;
-        this.s_decorations_array = null;
+        this.m_is_marking_mode = false;
+        this.m_selection_start = null;
+        this.m_decorations_array = null;
 
         if (remove_selection) {
             let editor = vscode.window.activeTextEditor;
@@ -57,7 +52,7 @@ export class Column_marking
 
     public on_did_change_text_editor_selection = (editor: vscode.TextEditor): void =>
     {
-        if (this.s_is_marking_mode && (this.s_selection_start !== null)) {
+        if (this.m_is_marking_mode && (this.m_selection_start !== null)) {
             this.caret_change_handler();
             return;
         }
@@ -65,14 +60,14 @@ export class Column_marking
 
     public caret_change_handler = (): void =>
     {
-        if (this.s_is_marking_mode && (this.s_selection_start !== null)) {
+        if (this.m_is_marking_mode && (this.m_selection_start !== null)) {
             let editor = vscode.window.activeTextEditor;
             if (editor) {
                 let caret_logical_position = editor.selection.active;
 
-                if (caret_logical_position.line > this.s_selection_start.line) {
-                    if (caret_logical_position.character > this.s_selection_start.character) {
-                        let start = this.s_selection_start;
+                if (caret_logical_position.line > this.m_selection_start.line) {
+                    if (caret_logical_position.character > this.m_selection_start.character) {
+                        let start = this.m_selection_start;
                         let end = caret_logical_position;
 
                         this.set_column_selection(editor,
@@ -80,11 +75,11 @@ export class Column_marking
                             end);
                         return;
                     }
-                    else if (caret_logical_position.character < this.s_selection_start.character) {
-                        let start = new vscode.Position(this.s_selection_start.line,
+                    else if (caret_logical_position.character < this.m_selection_start.character) {
+                        let start = new vscode.Position(this.m_selection_start.line,
                             caret_logical_position.character);
                         let end = new vscode.Position(caret_logical_position.line,
-                            this.s_selection_start.character);
+                            this.m_selection_start.character);
 
                         this.set_column_selection(editor,
                             start,
@@ -97,11 +92,11 @@ export class Column_marking
                         return;
                     }
                 }
-                else if (caret_logical_position.line < this.s_selection_start.line) {
-                    if (caret_logical_position.character > this.s_selection_start.character) {
+                else if (caret_logical_position.line < this.m_selection_start.line) {
+                    if (caret_logical_position.character > this.m_selection_start.character) {
                         let start = new vscode.Position(caret_logical_position.line,
-                            this.s_selection_start.character);
-                        let end = new vscode.Position(this.s_selection_start.line,
+                            this.m_selection_start.character);
+                        let end = new vscode.Position(this.m_selection_start.line,
                             caret_logical_position.character);
 
                         this.set_column_selection(editor,
@@ -109,9 +104,9 @@ export class Column_marking
                             end);
                         return;
                     }
-                    else if (caret_logical_position.character < this.s_selection_start.character) {
+                    else if (caret_logical_position.character < this.m_selection_start.character) {
                         let start = caret_logical_position;
-                        let end = this.s_selection_start;
+                        let end = this.m_selection_start;
 
                         this.set_column_selection(editor,
                             start,
@@ -126,8 +121,8 @@ export class Column_marking
                 }
                 else // if( caret_logical_position.line == this.s_column_selection_origin.line )
                 {
-                    if (caret_logical_position.character > this.s_selection_start.character) {
-                        let start = this.s_selection_start;
+                    if (caret_logical_position.character > this.m_selection_start.character) {
+                        let start = this.m_selection_start;
                         let end = caret_logical_position;
 
                         this.set_column_selection(editor,
@@ -135,9 +130,9 @@ export class Column_marking
                             end);
                         return;
                     }
-                    else if (caret_logical_position.character < this.s_selection_start.character) {
+                    else if (caret_logical_position.character < this.m_selection_start.character) {
                         let start = caret_logical_position;
-                        let end = this.s_selection_start;
+                        let end = this.m_selection_start;
 
                         this.set_column_selection(editor,
                             start,
@@ -161,36 +156,36 @@ export class Column_marking
 
         let width = selection_end.character - selection_start.character;
         if (width > 0) {
-            this.s_decorations_array = [];
+            this.m_decorations_array = [];
 
             for (let line = selection_start.line; line <= selection_end.line; line++) {
                 let range = new vscode.Range(new vscode.Position(line, selection_start.character),
                     new vscode.Position(line, selection_end.character));
                 let decoration: vscode.DecorationOptions = { range };
-                this.s_decorations_array.push(decoration);
+                this.m_decorations_array.push(decoration);
             }
 
-            editor.setDecorations(this.COLUMN_DECORATION_TYPE, this.s_decorations_array);
+            editor.setDecorations(this.COLUMN_DECORATION_TYPE, this.m_decorations_array);
             editor.revealRange(new vscode.Range(selection_end, selection_end));
         }
     };
 
     private remove_all_highlighters = (editor: vscode.TextEditor): void =>
     {
-        this.s_decorations_array = [];
+        this.m_decorations_array = [];
         editor.setDecorations(this.COLUMN_DECORATION_TYPE,
-            this.s_decorations_array);
-        this.s_decorations_array = null;
+            this.m_decorations_array);
+        this.m_decorations_array = null;
     };
 
     public delete_selection = (editor: vscode.TextEditor): Thenable<boolean> =>
     {
-        if (this.s_decorations_array &&
-            (this.s_decorations_array.length > 0)) {
+        if (this.m_decorations_array &&
+            (this.m_decorations_array.length > 0)) {
             return editor.edit(editBuilder =>
             {
-                if (this.s_decorations_array) {
-                    this.s_decorations_array.forEach((element) =>
+                if (this.m_decorations_array) {
+                    this.m_decorations_array.forEach((element) =>
                     {
                         editBuilder.delete(element.range);
                     });
@@ -203,15 +198,15 @@ export class Column_marking
 
     private get_selection = (editor: vscode.TextEditor): Column_mode_block_data | null =>
     {
-        if (this.s_decorations_array &&
-            (this.s_decorations_array.length > 0)) {
-            let size = this.s_decorations_array.length;
+        if (this.m_decorations_array &&
+            (this.m_decorations_array.length > 0)) {
+            let size = this.m_decorations_array.length;
             if (size > 0) {
-                this.s_decorations_array.
+                this.m_decorations_array.
                     sort((a, b) => (a.range.start.line < b.range.start.line) ? -1 : 1);
 
                 let block_text_array: string[] = [];
-                this.s_decorations_array.forEach((element) =>
+                this.m_decorations_array.forEach((element) =>
                 {
                     let row_text = editor.document.getText(element.range);
                     block_text_array.push(row_text.replace("\r", "").replace("\n", ""));

@@ -1,16 +1,11 @@
 
 import * as vscode from 'vscode';
 import * as utility from './utility';
-import { KeyEvent } from './utility';
 
 export class Line_marking
 {
     private m_is_marking_mode: boolean;
-
-    public get is_marking_mode(): boolean
-    {
-        return this.m_is_marking_mode;
-    }
+    public get is_marking_mode(): boolean { return this.m_is_marking_mode; }
 
     private m_selection_start: vscode.Position | null;
     private m_selection_end: vscode.Position | null;
@@ -61,7 +56,7 @@ export class Line_marking
         }
     }
 
-    private select = (editor: vscode.TextEditor,
+    public select = (editor: vscode.TextEditor,
         selection_start_line?: number,
         selection_end_line?: number): vscode.Selection =>
     {

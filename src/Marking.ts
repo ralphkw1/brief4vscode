@@ -5,11 +5,7 @@ import * as utility from './utility';
 export class Marking
 {
     private m_is_marking_mode: boolean;
-
-    public get is_marking_mode(): boolean
-    {
-        return this.m_is_marking_mode;
-    }
+    public get is_marking_mode(): boolean { return this.m_is_marking_mode; }
 
     private m_selection_start: vscode.Position | null;
 
