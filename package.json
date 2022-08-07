@@ -418,6 +418,7 @@
 		"test-compile": "tsc -p ./"
 	},
 	"devDependencies": {
+		"@types/chai": "^4.3.6",
 		"@types/glob": "^7.2.0",
 		"@types/mocha": "^9.1.1",
 		"@types/node": "16.x",
@@ -425,12 +426,16 @@
 		"@typescript-eslint/eslint-plugin": "^5.30.0",
 		"@typescript-eslint/parser": "^5.30.0",
 		"@vscode/test-electron": "^2.1.5",
+		"esbuild": "^0.14.51",
 		"eslint": "^8.18.0",
 		"glob": "^8.0.3",
 		"mocha": "^10.0.0",
 		"typescript": "^4.7.4"
 	},
-	"dependencies": {
-		"esbuild": "^0.14.51"
+	"__metadata": {
+		"id": "a5ff2535-6789-4b96-857b-315604b20fbd",
+		"publisherDisplayName": "RKDAW Enterprises",
+		"publisherId": "3b8febb3-91ac-4d28-8929-e4916569f29f",
+		"isPreReleaseVersion": false
 	}
 }

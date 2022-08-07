@@ -1,24 +1,37 @@
-<div style="background-color:#F5FFFF">
-<h2 style="color:#0000AA">Brief Text Editor Emulation and Keymap for Visual Studio Code</h2>
-<p>This extension adds key bindings and functionality that attempts to emulate many features of the original BRIEF MS-DOS application. Adds it's numbered bookmarks, overtype mode, home-home-home and end-end-end, line marking modes, single key cut copy and paste, clipboard swap, and clipboard history commands, as well as most of the original keybindings.</p>
-<p>Some history. BRIEF (Basic Re-configurable Interactive Editing Facility) was a popular programmer's text editor in the late 1980s and early 1990s. Developed by UnderWare Inc, it was quite powerful and feature rich for its time. For more information, see the Wikipedia page &quot;<a href="https://en.wikipedia.org/wiki/Brief_(text_editor)" target="_blank">Brief (text editor)</a>&quot;.</p>
-<h3 style="color:#0000AA">Installation</h3>
-<p>This extension has been tested on Linux and limited testing on Windows. I don't have a Mac.</p>
-<p>After you install the extension, it should just start working.</p>
-<p>There are multiple ways to install an extension in Visual Studio Code. You can...</p>
-<ol>
-    <li>Show the EXTENSIONS Sidebar by either pressing (ctrl+shift+x), or click on the "Extensions" icon in the "Activity Bar", or open the command palette (ctrl+shift+p) select "Extensions: Install Extension", or click on the "Manage" icon in the "Activity Bar" and select "Extensions". Then click in the "Search Extensions in Marketplace" box and enter "brief4vscode" to find the extension. Then click the install button.</li>
-    or
-    <li>Launch VS Code Quick Open (ctrl+p), type the command "ext install rkdawenterprises.brief4vscode", and press enter.</li>
-</ol>
-<h3 style="color:#0000AA">Commands</h3>
-<p>The following are the key bindings and commands implemented by the plugin.</p>
-<p>Some Brief functionality is currently the Visual Studio Code default, or close enough.</p>
-<p>No intentional changes to mouse functionality.</p>
-<p>None of the commands will work unless the cursor is in an active "TextDocument". This is done so the extension won't interfere with existing functionality.</p>
-<p>If you are looking for implementations of the full Brief command set, you may try the following link, as long as it still works. &quot;<a href="https://christopoulos.users.sourceforge.net/cbrief/brief.php" target="_blank">About BRIEF Text Editor</a>&quot;. Otherwise, search for it with your favorite search engine and see what you can find.</p>
-<p>Multi-root workspaces are not supported and not tested, but should only affect the relative bookmark feature; It should default to global bookmarks.
+<div>
+<img src="media/brief4vscode_128.png" width="80" height="80" alt="icon" align="left" title="Brief Emulator for Visual Studio Code"/>
+<h1 style="color:#0000AA;padding-left:100px">Brief Emulator for Visual Studio Code</h1>
+<br/>
 </div>
+
+---
+## Brief Text Editor Emulation and Keymap for Visual Studio Code
+This extension adds key bindings and functionality that attempts to emulate many features of the original BRIEF MS-DOS application. Adds it's numbered bookmarks, overtype mode, home-home-home and end-end-end, line marking modes, single key cut copy and paste, clipboard swap, and clipboard history commands, as well as most of the original keybindings.
+
+Some history. BRIEF (Basic Re-configurable Interactive Editing Facility) was a popular programmer's text editor in the late 1980s and early 1990s. Developed by UnderWare Inc, it was quite powerful and feature rich for its time. See the Wikipedia page &quot;<a href="https://en.wikipedia.org/wiki/Brief_(text_editor)" target="_blank">Brief (text editor)</a>&quot; for more information.
+
+---
+## Installation
+This extension has been tested on Linux and limited testing on Windows. I don't have a Mac. After you install the extension, it should just start working.
+
+There are a few ways to install an extension in Visual Studio Code. You can...
+
+1. Show the EXTENSIONS Sidebar by either pressing (ctrl+shift+x), or click on the "Extensions" icon in the "Activity Bar", or open the command palette (ctrl+shift+p) select "Extensions: Install Extension", or click on the "Manage" icon in the "Activity Bar" and select "Extensions". Then click in the "Search Extensions in Marketplace" box and enter "brief4vscode" to find the extension. Then click the install button.
+2. Launch VS Code Quick Open (ctrl+p), type the command "ext install rkdawenterprises.brief4vscode", and press enter.
+
+---
+## Commands
+The following are the key bindings and commands implemented by the plugin.
+
+Some Brief functionality is currently the Visual Studio Code default, or close enough.
+
+No intentional changes to mouse functionality.
+
+None of the commands should work unless the cursor is in an active "TextDocument". So the extension shouldn't interfere with existing functionality.
+
+Multi-root workspaces are not supported and not tested, but should only affect the relative bookmark feature; It should default to global bookmarks.
+
+<div>
 <table style="background-color:#F5FFFF">
     <caption style="color:#0000AA; background-color:#F5FFFF">Help and Undo/Redo</caption>
     <tr><th width="15%">Key Binding</th><th width="20%">Command</th><th width="65%">Description</th></tr>
@@ -95,24 +108,39 @@
     <tr><td>Ctrl + R</td><td>Repeat</td><td>Opens the &quot;Repeat Dialog&quot;, then repeats the requested command, or inserts the requested char/string into the editor, the requested number of times. Not all commands are supported or work well. Actually accepts any &quot;non-printable&quot; key sequence, so not sure what works actually.</td></tr>
 </table>
 <div style="background-color:#F5FFFF">
-<h3 style="color:#0000AA">Notes<sup>*</sup></h3>
-<ul>
-<li>Really can't properly implement Brief's "Column Marking Mode" until that mode is improved in Visual Studio Code API. You'll just have to struggle with using the existing column functionality.</li>
-<li>The extension may not currently work very well with line/code folding (not tested). So best to unfold the area of the file you are working on if you want the commands to work as expected.</li>
-<li>I can only account for Brief defined keystrokes in the marking modes. Turn off an active marking mode to use other commands. I couldn't find a way to generally monitor all keystrokes to disable an active marking mode.</li>
-</ul>
+<h4 style="color:#0000AA">Notes<sup>*</sup></h3>
+    <ul>
+    <li>Really can't properly implement Brief's "Column Marking Mode" until Visual Studio Code supports "virtual space".</li>
+    <li>The extension may not currently work very well with line/code folding (not tested). So best to unfold the area of the file you are working on if you want the commands to work as expected.</li>
+    <li>I can only account for Brief defined keystrokes in the marking modes. Turn off an active marking mode to use other commands. I couldn't find a way to generally monitor all keystrokes to disable an active marking mode.</li>
+    </ul>
 </div>
-<div style="background-color:#F5FFFF">
-<h3 style="color:#0000AA">Contact/Bugs</h3>
-<p>Enter bugs at &quot;<a href=https://github.com/ralphkw1/brief4vscode/issues target="_blank">Brief for VS Code Issues</a>&quot;.</p>
+</div>
+
+---
+## Contact/Bugs
+Enter bugs at &quot;<a href=https://github.com/ralphkw1/brief4vscode/issues target="_blank">Brief for VS Code Issues</a>&quot;.
+
 <p>You can email me at <a href="mailto:&#109;&#97;&#105;&#108;&#116;&#111;&#58;rkdawenterprises&#64;gmail&#46;com&#46;no!spam?subject=Brief Editor Emulation for Visual Studio Code">rkdawenterprises&#64;gmail&#46;com&#46;no!spam</a>. I don't look at this very often so it may take a while to hear back.</p>
-<p>I started using Brief in the early 1990s when I was at Compaq Computer Corporation working on printers. I thought at the time that it was way beyond any editor I had used to date.</p>
-<p>I created this project as an exercise for me to learn Visual Studio Code extension development; Just having fun. I don't think that there is a high demand for Brief emulation anywhere. Also, I have always really liked the Brief key assignments and feature set and I try and set it up in any editor I use. So if you are/were also into Brief, I hope you enjoy using this.</p>
-<p>One of the goals of this project was to have minimal functional effect on the Visual Studio Code &quot;TextDocument&quot; editor. So this is by no means a perfect example of the Brief editor, and it's a little quirky at times, mainly because it is limited by the API and architecture of the existing editor. I try to note any deviations in the command descriptions, at least, deviations from the limited documentation and knowledge I have. I have also added some commands as documented below. You can, of course, disable any key bindings and/or set them back to default in the &quot;settings-&gt;keyboard shortcuts.</p>
-<p>BTW, I don't have a working example of Brief, just the old documentation. Feel free to let me know if I have implemented something improperly. Also, I did not try to emulate all of Brief's functionality. This is most certainly a subset.</p>
-<h3 style="color:#0000AA">License</h3>
-<p>Copyright 2021 RKDAW Enterprises and Ralph Williamson</p>
-<p>Licensed under the Apache License, Version 2.0 (the "License"); You may not use this file except in compliance with the License.<br>You may obtain a copy of the License at</p>
-<p><a href="https://www.apache.org/licenses/LICENSE-2.0.txt">https://www.apache.org/licenses/LICENSE-2.0.txt</a></p>
-<p>Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.</p>
-</div>
+
+I started using Brief in the early 1990s when I was at Compaq Computer Corporation working on printers.
+I thought at the time that it was way superior to any editor I had used to date. I've used it for so long,
+the key bindings and particular functionality has just stuck with me.
+
+I created this project as an exercise for me to learn Visual Studio Code extension development; Just having fun. I don't think that there is a high demand for Brief emulation anywhere. Also, I have always really liked the Brief key assignments and feature set and I try and set it up in any editor I use. So if you are/were also into Brief, I hope you enjoy using this.
+
+One of the goals of this project was to have minimal functional effect on the Visual Studio Code &quot;TextDocument&quot; editor. So this is by no means a perfect example of the Brief editor, and it's a little quirky at times, mainly because it is limited by the API and architecture of the existing editor. I try to note any deviations in the command descriptions, at least, deviations from the limited documentation and knowledge I have. I have also added some commands as documented below. You can, of course, disable any key bindings and/or set them back to default in the &quot;settings-&gt;keyboard shortcuts.
+
+BTW, I don't have a working example of Brief, just the old documentation. Feel free to let me know if I have implemented something improperly. Also, I did not try to emulate all of Brief's functionality. This is most certainly a subset.
+
+---
+## License
+Copyright 2019-2022 RKDAW Enterprises and Ralph Williamson
+
+Licensed under the Apache License, Version 2.0 (the "License"); You may not use this file except in compliance with the License.
+
+You may obtain a copy of the License at [Apache License Verson 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and
+limitations under the License.

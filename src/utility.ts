@@ -80,38 +80,43 @@ export class KeyEvent
 
 export let select_lines = ( selection_start_line?: number,
                             selection_end_line?: number ): vscode.Selection | null =>
+{
+    let editor = vscode.window.activeTextEditor;
+    if( editor )
     {
-        let editor = vscode.window.activeTextEditor;
-        if( editor )
+        selection_start_line = selection_start_line ?? editor.selection.active.line;
+        selection_end_line = selection_end_line ?? selection_start_line;
+
+        if( selection_start_line < 0 ) { selection_start_line = 0; }
+        if( selection_end_line < 0 ) { selection_end_line = 0; }
+        let max = editor.document.lineCount - 1;
+        if( selection_end_line > max ) { selection_end_line = max; }
+
+        let selection_start: vscode.Position;
+        let selection_end: vscode.Position;
+
+        let selection_end_line_validated = editor.document.validatePosition( new vscode.Position( selection_end_line, 0 ) );
+        
+        if( selection_start_line >= selection_end_line )
         {
-            selection_start_line = selection_start_line ?? editor.selection.active.line;
-            selection_end_line = selection_end_line ?? selection_start_line;
-
-            if( selection_start_line < 0 ) { selection_start_line = 0; }
-            if( selection_end_line < 0 ) { selection_end_line = 0; }
-            let max = editor.document.lineCount - 1;
-            if( selection_end_line > max ) { selection_end_line = max; }
-
-            let selection_start: vscode.Position;
-            let selection_end: vscode.Position;
-
-            let selection_end_line_validated = editor.document.validatePosition( new vscode.Position( selection_end_line, 0 ) );
-            
-            if( selection_start_line >= selection_end_line )
-            {
-                selection_end = selection_end_line_validated;
-                selection_start = editor.document.lineAt( new vscode.Position( selection_start_line, 0 ) ).rangeIncludingLineBreak.end;
-            }
-            else
-            {
-                selection_start = new vscode.Position( selection_start_line, 0 );
-                selection_end = editor.document.lineAt( selection_end_line_validated ).rangeIncludingLineBreak.end;
-            }
-
-            let selection = editor.selection = new vscode.Selection( selection_start, selection_end );
-            editor.revealRange( new vscode.Range( selection_end, selection_end ) );
-            return selection;
+            selection_end = selection_end_line_validated;
+            selection_start = editor.document.lineAt( new vscode.Position( selection_start_line, 0 ) ).rangeIncludingLineBreak.end;
+        }
+        else
+        {
+            selection_start = new vscode.Position( selection_start_line, 0 );
+            selection_end = editor.document.lineAt( selection_end_line_validated ).rangeIncludingLineBreak.end;
         }
 
-        return null;
-    };
+        let selection = editor.selection = new vscode.Selection( selection_start, selection_end );
+        editor.revealRange( new vscode.Range( selection_end, selection_end ) );
+        return selection;
+    }
+
+    return null;
+};
+
+export let remove_range = (string: string, from: number, to: number): string =>
+{
+    return string.slice(0, from) + string.slice(to);
+};

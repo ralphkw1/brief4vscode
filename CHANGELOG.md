@@ -4,7 +4,9 @@ All notable changes to the "brief4vscode" extension will be documented in this f
 
 ## [v1.2.0] (2022-07-29)
 
-- Added functional column marking mode. Reworked other marking modes moving them to separate files.
+- Added a functional column marking mode. But vscode has no virtual space support so it's not optimal.
+- Reworked other marking modes moving them to separate files.
+- A few other functional tweaks. Escape exits marking modes. Comment command moves to beginning of next line so you can hit it multiple times.
 
 ## [v1.1.0] (2021-03-06)
 
