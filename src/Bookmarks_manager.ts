@@ -200,7 +200,7 @@ export class Bookmarks_manager
                 let new_URI_is_directory = ( value.type === vscode.FileType.Directory );
                 let new_URI_is_file = ( value.type === vscode.FileType.File );
 
-                console.log( `old: ${e.files[i].oldUri}, new: ${e.files[i].newUri}, ${new_URI_is_directory}, ${new_URI_is_file}` );
+                //console.log( `old: ${e.files[i].oldUri}, new: ${e.files[i].newUri}, ${new_URI_is_directory}, ${new_URI_is_file}` );
 
                 for( let j = 0; j < this.bookmarks.length; j++ )
                 {
@@ -277,7 +277,7 @@ export class Bookmarks_manager
             message = "\tBookmark " + bookmark.bookmark_number + " = [" + bookmark.path + ", " + bookmark.line + ":" + bookmark.character + "]\n";
         }
 
-        console.log( `get_stored_bookmarks:\n ${( no_bookmarks ? "\tno stored bookmarks" : message )}` );
+        //console.log( `get_stored_bookmarks:\n ${( no_bookmarks ? "\tno stored bookmarks" : message )}` );
     };
 
     private convert_URI_absolute_to_relative = ( path: vscode.Uri ): string =>

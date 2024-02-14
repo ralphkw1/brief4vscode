@@ -2,6 +2,11 @@
 
 All notable changes to the "brief4vscode" extension will be documented in this file.
 
+## [v1.3.0] (2024-02-14)
+
+- Added configuration option to change behavior of "Exit" and "Write all and exit" commands to keep them from closing the IDE. They will optionally just close the editors. 
+- Disabling a marking mode will remove the existing selection.
+
 ## [v1.2.0] (2022-07-29)
 
 - Added a functional column marking mode. But vscode has no virtual space support so it's not optimal.

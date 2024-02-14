@@ -44,41 +44,42 @@ export class Commands
         this.m_is_overstrike_mode = false;
 
         context.subscriptions.push(
-            vscode.commands.registerCommand("type", this.type_command),
-            vscode.commands.registerCommand("brief4vscode.enable_brief4vscode", this.enable_brief4vscode),
-            vscode.commands.registerCommand("brief4vscode.disable_brief4vscode", this.disable_brief4vscode),
-            vscode.commands.registerCommand("brief4vscode.overstrike_toggle", this.overstrike_toggle),
-            vscode.commands.registerCommand("brief4vscode.up", this.up),
-            vscode.commands.registerCommand("brief4vscode.down", this.down),
-            vscode.commands.registerCommand("brief4vscode.left", this.left),
-            vscode.commands.registerCommand("brief4vscode.right", this.right),
-            vscode.commands.registerCommand("brief4vscode.page_down", this.page_down),
-            vscode.commands.registerCommand("brief4vscode.page_up", this.page_up),
-            vscode.commands.registerCommand("brief4vscode.end", this.end),
-            vscode.commands.registerCommand("brief4vscode.home", this.home),
-            vscode.commands.registerCommand("brief4vscode.delete", this.delete),
-            vscode.commands.registerCommand("brief4vscode.backspace", this.backspace),
-            vscode.commands.registerCommand("brief4vscode.tab", this.tab),
-            vscode.commands.registerCommand("brief4vscode.outdent", this.outdent),
-            vscode.commands.registerCommand("brief4vscode.marking_mode_toggle", this.marking_mode_toggle),
-            vscode.commands.registerCommand("brief4vscode.line_marking_mode_toggle", this.line_marking_mode_toggle),
-            vscode.commands.registerCommand("brief4vscode.column_marking_mode_toggle", this.column_marking_mode_toggle),
-            vscode.commands.registerCommand("brief4vscode.copy", this.copy),
-            vscode.commands.registerCommand("brief4vscode.cut", this.cut),
-            vscode.commands.registerCommand("brief4vscode.paste", this.paste),
-            vscode.commands.registerCommand("brief4vscode.swap", this.swap),
-            vscode.commands.registerCommand("brief4vscode.open_scrap_dialog", this.open_scrap_dialog),
-            vscode.commands.registerCommand("brief4vscode.save_and_exit", this.save_and_exit),
-            vscode.commands.registerCommand("brief4vscode.top_of_window", this.top_of_window),
-            vscode.commands.registerCommand("brief4vscode.end_of_window", this.end_of_window),
-            vscode.commands.registerCommand("brief4vscode.line_to_top_of_window", this.line_to_top_of_window),
-            vscode.commands.registerCommand("brief4vscode.center_line_in_window", this.center_line_in_window),
-            vscode.commands.registerCommand("brief4vscode.line_to_bottom_of_window", this.line_to_bottom_of_window),
-            vscode.commands.registerCommand("brief4vscode.comment_line", this.comment_line),
-            vscode.commands.registerCommand("brief4vscode.drop_bookmark", this.drop_bookmark),
-            vscode.commands.registerCommand("brief4vscode.open_bookmarks_dialog", this.open_bookmarks_dialog),
-            vscode.commands.registerCommand("brief4vscode.jump_bookmark", this.jump_bookmark),
-            vscode.commands.registerCommand("brief4vscode.escape", this.escape));
+            vscode.commands.registerCommand("type", (...args: any[]): any => { this.type_command(args[0]); }),
+            vscode.commands.registerCommand("brief4vscode.enable_brief4vscode", (...args: any[]): any => { this.enable_brief4vscode(args); }),
+            vscode.commands.registerCommand("brief4vscode.disable_brief4vscode", (...args: any[]): any => { this.disable_brief4vscode(args); }),
+            vscode.commands.registerCommand("brief4vscode.overstrike_toggle", (...args: any[]): any => { this.overstrike_toggle(args); }),
+            vscode.commands.registerCommand("brief4vscode.up", (...args: any[]): any => { this.up(args); }),
+            vscode.commands.registerCommand("brief4vscode.down", (...args: any[]): any => { this.down(args); }),
+            vscode.commands.registerCommand("brief4vscode.left", (...args: any[]): any => { this.left(args); }),
+            vscode.commands.registerCommand("brief4vscode.right", (...args: any[]): any => { this.right(args); }),
+            vscode.commands.registerCommand("brief4vscode.page_down", (...args: any[]): any => { this.page_down(args); }),
+            vscode.commands.registerCommand("brief4vscode.page_up", (...args: any[]): any => { this.page_up(args); }),
+            vscode.commands.registerCommand("brief4vscode.end", (...args: any[]): any => { this.end(args); }),
+            vscode.commands.registerCommand("brief4vscode.home", (...args: any[]): any => { this.home(args); }),
+            vscode.commands.registerCommand("brief4vscode.delete", (...args: any[]): any => { this.delete(args); }),
+            vscode.commands.registerCommand("brief4vscode.backspace", (...args: any[]): any => { this.backspace(args); }),
+            vscode.commands.registerCommand("brief4vscode.tab", (...args: any[]): any => { this.tab(args); }),
+            vscode.commands.registerCommand("brief4vscode.outdent", (...args: any[]): any => { this.outdent(args); }),
+            vscode.commands.registerCommand("brief4vscode.marking_mode_toggle", (...args: any[]): any => { this.marking_mode_toggle(args); }),
+            vscode.commands.registerCommand("brief4vscode.line_marking_mode_toggle", (...args: any[]): any => { this.line_marking_mode_toggle(args); }),
+            vscode.commands.registerCommand("brief4vscode.column_marking_mode_toggle", (...args: any[]): any => { this.column_marking_mode_toggle(args); }),
+            vscode.commands.registerCommand("brief4vscode.copy", (...args: any[]): any => { this.copy(args); }),
+            vscode.commands.registerCommand("brief4vscode.cut", (...args: any[]): any => { this.cut(args); }),
+            vscode.commands.registerCommand("brief4vscode.paste", (...args: any[]): any => { this.paste(args); }),
+            vscode.commands.registerCommand("brief4vscode.swap", (...args: any[]): any => { this.swap(args); }),
+            vscode.commands.registerCommand("brief4vscode.open_scrap_dialog", (...args: any[]): any => { this.open_scrap_dialog(args); }),
+            vscode.commands.registerCommand("brief4vscode.exit", (...args: any[]): any => { this.exit(args); }),
+            vscode.commands.registerCommand("brief4vscode.save_and_exit", (...args: any[]): any => { this.save_and_exit(args); }),
+            vscode.commands.registerCommand("brief4vscode.top_of_window", (...args: any[]): any => { this.top_of_window(args); }),
+            vscode.commands.registerCommand("brief4vscode.end_of_window", (...args: any[]): any => { this.end_of_window(args); }),
+            vscode.commands.registerCommand("brief4vscode.line_to_top_of_window", (...args: any[]): any => { this.line_to_top_of_window(args); }),
+            vscode.commands.registerCommand("brief4vscode.center_line_in_window", (...args: any[]): any => { this.center_line_in_window(args); }),
+            vscode.commands.registerCommand("brief4vscode.line_to_bottom_of_window", (...args: any[]): any => { this.line_to_bottom_of_window(args); }),
+            vscode.commands.registerCommand("brief4vscode.comment_line", (...args: any[]): any => { this.comment_line(args); }),
+            vscode.commands.registerCommand("brief4vscode.drop_bookmark", (...args: any[]): any => { this.drop_bookmark(args[0]); }),
+            vscode.commands.registerCommand("brief4vscode.open_bookmarks_dialog", (...args: any[]): any => { this.open_bookmarks_dialog(args); }),
+            vscode.commands.registerCommand("brief4vscode.jump_bookmark", (...args: any[]): any => { this.jump_bookmark(args); }),
+            vscode.commands.registerCommand("brief4vscode.escape", (...args: any[]): any => { this.escape(args); }));
 
         context.subscriptions.push(
             vscode.window.onDidChangeActiveTextEditor(this.on_did_change_active_text_editor),
@@ -239,7 +240,7 @@ export class Commands
         vscode.commands.executeCommand("setContext", "brief4vscode_marking_mode", is_marking_mode);
 
         if (!is_marking_mode) {
-            this.stop_all_marking_modes();
+            this.stop_all_marking_modes(true);
         }
         else {
             this.m_marking.enable_marking_mode();
@@ -258,7 +259,7 @@ export class Commands
         vscode.commands.executeCommand("setContext", "brief4vscode_marking_mode", is_line_marking_mode);
 
         if (!is_line_marking_mode) {
-            this.stop_all_marking_modes();
+            this.stop_all_marking_modes(true);
         }
         else {
             this.m_line_marking.enable_marking_mode();
@@ -277,7 +278,7 @@ export class Commands
         vscode.commands.executeCommand("setContext", "brief4vscode_marking_mode", is_column_marking_mode);
 
         if (!is_column_marking_mode) {
-            this.stop_all_marking_modes();
+            this.stop_all_marking_modes(true);
         }
         else {
             this.m_column_marking.enable_marking_mode();
@@ -804,11 +805,30 @@ export class Commands
             });
     };
 
+    public exit = (args: any[] | null): void =>
+    {
+        if(this.m_configuration?.use_brief_exit)
+        {
+            vscode.commands.executeCommand("workbench.action.quit", args);
+        }
+        else
+        {
+            vscode.commands.executeCommand("workbench.action.closeActiveEditor", args);
+        }
+    };
+
     public save_and_exit = (args: any[] | null): void =>
     {
         vscode.commands.executeCommand("workbench.action.files.saveAll", args).then(() =>
         {
+            if(this.m_configuration?.use_brief_write_all_and_exit)
+            {
             vscode.commands.executeCommand("workbench.action.quit", args);
+            }
+            else
+            {
+                vscode.commands.executeCommand("workbench.action.closeAllEditors", args);
+            }
         });
     };
 

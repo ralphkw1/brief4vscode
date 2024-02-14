@@ -13,6 +13,8 @@ export interface Configuration
 	use_brief_home: boolean | undefined;
 	paste_lines_at_home: boolean | undefined;
 	use_relative_bookmarks: boolean | undefined;
+	use_brief_exit: boolean | undefined;
+	use_brief_write_all_and_exit: boolean | undefined;
 };
 
 let s_local_storage: Local_storage | null;
@@ -79,7 +81,9 @@ function get_configuration(): Configuration
 		default_cursor_style: cursor_style,
 		use_brief_home: brief4vscode_configuration.get<boolean>( "use_brief_home" ),
 		paste_lines_at_home: brief4vscode_configuration.get<boolean>( "paste_lines_at_home" ),
-		use_relative_bookmarks: brief4vscode_configuration.get<boolean>( "use_relative_bookmarks" )
+		use_relative_bookmarks: brief4vscode_configuration.get<boolean>( "use_relative_bookmarks" ),
+		use_brief_exit: brief4vscode_configuration.get<boolean>( "use_brief_exit" ),
+		use_brief_write_all_and_exit: brief4vscode_configuration.get<boolean>( "use_brief_write_all_and_exit" ),
 	};
 }
 
@@ -87,11 +91,17 @@ function configuration_changed( e: vscode.ConfigurationChangeEvent ): any
 {
 	let configuration = get_configuration();
 
-	if( e.affectsConfiguration( "brief4vscode.use_brief_home" ) ||
-		e.affectsConfiguration( "brief4vscode.paste_lines_at_home" ) )
+	if( e.affectsConfiguration( "brief4vscode.paste_lines_at_home" ) )
 	{
 		s_commands?.on_configuration_changed( configuration );
 		s_scrap_manager?.on_configuration_changed( configuration );
+	}
+
+	if( e.affectsConfiguration( "brief4vscode.use_brief_home" ) ||
+	    e.affectsConfiguration( "brief4vscode.use_brief_exit" ) ||
+	    e.affectsConfiguration( "brief4vscode.use_brief_write_all_and_exit" ))
+	{
+		s_commands?.on_configuration_changed( configuration );
 	}
 
 	if( e.affectsConfiguration( "brief4vscode.use_relative_bookmarks" ) )
