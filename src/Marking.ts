@@ -6,12 +6,15 @@ export class Marking
 {
     private m_is_marking_mode: boolean;
     public get is_marking_mode(): boolean { return this.m_is_marking_mode; }
+    private m_is_marking_mode_noninclusive: boolean;
+    public get is_marking_mode_noninclusive(): boolean { return this.m_is_marking_mode_noninclusive; }
 
     private m_selection_start: vscode.Position | null;
 
     public constructor()
     {
         this.m_is_marking_mode = false;
+        this.m_is_marking_mode_noninclusive = false;
         this.m_selection_start = null;
     }
 
@@ -20,6 +23,7 @@ export class Marking
         let editor = vscode.window.activeTextEditor;
         if (editor) {
             this.m_is_marking_mode = true;
+            this.m_is_marking_mode_noninclusive = is_noninclusive;
             this.m_selection_start = editor.selection.active;
             if(!is_noninclusive)
             {
@@ -31,6 +35,7 @@ export class Marking
     public stop_marking_mode = (remove_selection?: boolean): void =>
     {
         this.m_is_marking_mode = false;
+        this.m_is_marking_mode_noninclusive = false;
         this.m_selection_start = null;
 
         if (remove_selection) {

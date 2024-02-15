@@ -216,7 +216,15 @@ export class Commands
 
     public marking_mode_toggle = (args: any[] | null): void =>
     {
-        this.set_marking_mode(!this.m_marking.is_marking_mode);
+        if((this.m_marking.is_marking_mode) && (this.m_marking.is_marking_mode_noninclusive))
+        {
+            this.stop_all_marking_modes(true);
+            this.set_marking_mode(true);
+        }
+        else
+        {
+            this.set_marking_mode(!this.m_marking.is_marking_mode);
+        }
     };
 
     public line_marking_mode_toggle = (args: any[] | null): void =>
@@ -231,7 +239,15 @@ export class Commands
 
     public noninclusive_marking_mode_toggle = (args: any[] | null): void =>
     {
-        this.set_marking_mode(!this.m_marking.is_marking_mode, true);
+        if((this.m_marking.is_marking_mode) && (!this.m_marking.is_marking_mode_noninclusive))
+        {
+            this.stop_all_marking_modes(true);
+            this.set_marking_mode(true, true);
+        }
+        else
+        {
+            this.set_marking_mode(!this.m_marking.is_marking_mode, true);
+        }
     };
 
     private set_marking_mode = (is_marking_mode: boolean, is_noninclusive: boolean = false): void =>
