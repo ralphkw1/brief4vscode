@@ -2,6 +2,10 @@
 
 All notable changes to the "brief4vscode" extension will be documented in this file.
 
+## [v1.4.0] (2024-02-15)
+
+- Added "Noninclusive mark" mode toggle command (Alt+A). 
+
 ## [v1.3.0] (2024-02-14)
 
 - Added configuration option to change behavior of "Exit" and "Write all and exit" commands to keep them from closing the IDE. They will optionally just close the editors. 

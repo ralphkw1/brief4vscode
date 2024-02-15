@@ -15,13 +15,16 @@ export class Marking
         this.m_selection_start = null;
     }
 
-    public enable_marking_mode = (): void =>
+    public enable_marking_mode = (is_noninclusive: boolean = false): void =>
     {
         let editor = vscode.window.activeTextEditor;
         if (editor) {
             this.m_is_marking_mode = true;
             this.m_selection_start = editor.selection.active;
-            vscode.commands.executeCommand("cursorRightSelect");
+            if(!is_noninclusive)
+            {
+                vscode.commands.executeCommand("cursorRightSelect");
+            }
         }
     };
 

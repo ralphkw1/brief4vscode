@@ -63,6 +63,7 @@ export class Commands
             vscode.commands.registerCommand("brief4vscode.marking_mode_toggle", (...args: any[]): any => { this.marking_mode_toggle(args); }),
             vscode.commands.registerCommand("brief4vscode.line_marking_mode_toggle", (...args: any[]): any => { this.line_marking_mode_toggle(args); }),
             vscode.commands.registerCommand("brief4vscode.column_marking_mode_toggle", (...args: any[]): any => { this.column_marking_mode_toggle(args); }),
+            vscode.commands.registerCommand("brief4vscode.noninclusive_marking_mode_toggle", (...args: any[]): any => { this.noninclusive_marking_mode_toggle(args); }),
             vscode.commands.registerCommand("brief4vscode.copy", (...args: any[]): any => { this.copy(args); }),
             vscode.commands.registerCommand("brief4vscode.cut", (...args: any[]): any => { this.cut(args); }),
             vscode.commands.registerCommand("brief4vscode.paste", (...args: any[]): any => { this.paste(args); }),
@@ -228,7 +229,12 @@ export class Commands
         this.set_column_marking_mode(!this.m_column_marking.is_marking_mode);
     };
 
-    private set_marking_mode = (is_marking_mode: boolean): void =>
+    public noninclusive_marking_mode_toggle = (args: any[] | null): void =>
+    {
+        this.set_marking_mode(!this.m_marking.is_marking_mode, true);
+    };
+
+    private set_marking_mode = (is_marking_mode: boolean, is_noninclusive: boolean = false): void =>
     {
         this.stop_all_marking_modes();
 
@@ -236,14 +242,22 @@ export class Commands
             this.set_overstrike_mode(false);
         }
 
-        this.m_status_bar?.set_marking_mode(is_marking_mode);
+        if(is_noninclusive)
+        {
+            this.m_status_bar?.set_marking_mode(is_marking_mode, "NONINCLUSIVE");
+        }
+        else
+        {
+            this.m_status_bar?.set_marking_mode(is_marking_mode);
+        }
+
         vscode.commands.executeCommand("setContext", "brief4vscode_marking_mode", is_marking_mode);
 
         if (!is_marking_mode) {
             this.stop_all_marking_modes(true);
         }
         else {
-            this.m_marking.enable_marking_mode();
+            this.m_marking.enable_marking_mode(is_noninclusive);
         }
     };
 

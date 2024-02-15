@@ -84,6 +84,7 @@ Multi-root workspaces are not supported and not tested, but should only affect t
     <tr><td>Alt + M</td><td>Mark toggle</td><td>Toggle normal marking mode. Use cursor or single click mouse to move cursor and expand selection.</td></tr>
     <tr><td>Alt + L</td><td>Line Mark toggle</td><td>Toggle line marking mode. Use cursor or single click mouse to move cursor and expand selection.</td></tr>
     <tr><td>Alt + C</td><td>Column Mark toggle<sup>*</sup></td><td>Toggle column marking mode. Use cursor or single click mouse to move cursor and expand selection.</td></tr>
+    <tr><td>Alt + A</td><td>Noninclusive Mark toggle</td><td>Equivalent to Mark, except that the marked area does not include the character at the end of the block. Essentially begins the marking mode with no visible selection, unlike Mark which automatically selects the first character.</td></tr>
     <tr><td>Alt + <i>[1-10]</i></td><td>Drop bookmark</td><td>Inserts a numbered (1-10) bookmark into the editor and the current cursor posiotion. Bookmark 10 is dropped using the 0 key.</td></tr>
     <tr><td>Alt + J</td><td>Jump to bookmark</td><td>Waits for a bookmark number, <i>[1-10]</i> then jumps to that number. Bookmark 10 is the 0 key.</td></tr>
     <tr><td>Alt + B</td><td>Bookmark List</td><td>Open bookmark list dialog. Scroll and select a bookmark to jump to. Can also delete bookmarks. This is a new command and the key assignment was taken from the "buffer list" command, which is not implemented.</td></tr>
@@ -135,7 +136,7 @@ BTW, I don't have a working example of Brief, just the old documentation. Feel f
 
 ---
 ## License
-Copyright 2019-2022 RKDAW Enterprises and Ralph Williamson
+Copyright 2019-2024 RKDAW Enterprises and Ralph Williamson
 
 Licensed under the Apache License, Version 2.0 (the "License"); You may not use this file except in compliance with the License.
 

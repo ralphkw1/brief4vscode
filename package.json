@@ -8,7 +8,7 @@
         "url": "https://github.com/ralphkw1/brief4vscode.git"
     },
     "publisher": "rkdawenterprises",
-    "version": "1.3.0",
+    "version": "1.4.0",
     "license": "Apache2",
     "os": [
         "linux",
@@ -109,8 +109,8 @@
                 "when": "editorTextFocus && !editorReadonly && brief4vscode_enabled"
             },
             {
-                "command": "brief4vscode.overstrike_toggle",
                 "key": "alt+i",
+                "command": "brief4vscode.overstrike_toggle",
                 "when": "editorTextFocus && brief4vscode_enabled"
             },
             {
@@ -196,6 +196,11 @@
             {
                 "key": "alt+c",
                 "command": "brief4vscode.column_marking_mode_toggle",
+                "when": "editorTextFocus && brief4vscode_enabled"
+            },
+            {
+                "key": "alt+a",
+                "command": "brief4vscode.noninclusive_marking_mode_toggle",
                 "when": "editorTextFocus && brief4vscode_enabled"
             },
             {
@@ -423,27 +428,30 @@
         "lint": "eslint src --ext ts",
         "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
         "esbuild": "npm run esbuild-base -- --sourcemap",
-        "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch"
+        "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+        "vsce_package": "vsce package",
+        "vsce_publish": "vsce publish"
     },
     "devDependencies": {
-        "@types/chai": "^4.3.11",
         "@types/vscode": "^1.86.0",
-        "@types/glob": "^8.1.0",
         "@types/mocha": "^10.0.6",
         "@types/node": "18.x",
         "@typescript-eslint/eslint-plugin": "^7.0.1",
         "@typescript-eslint/parser": "^7.0.1",
+        "@vscode/vsce": "^2.23.0",
         "esbuild": "^0.20.0",
         "eslint": "^8.56.0",
         "glob": "^10.3.10",
         "mocha": "^10.3.0",
-        "typescript": "^5.3.3",
-        "@vscode/vsce": "^2.23.0"
+        "typescript": "^5.3.3"
     },
     "__metadata": {
         "id": "a5ff2535-6789-4b96-857b-315604b20fbd",
         "publisherDisplayName": "RKDAW Enterprises",
         "publisherId": "3b8febb3-91ac-4d28-8929-e4916569f29f",
         "isPreReleaseVersion": false
+    },
+    "dependencies": {
+        "rimraf": "^5.0.5"
     }
 }
